@@ -860,7 +860,7 @@ function exportExcel(){
     const data = allRows.map(r=>({
       'FECHA DE APROBACIÓN': r.fecha,
       'FECHA DE LIBERACIÓN': r.fechaLib||r.fecha,
-      'NÚMERO DE IDENTIFICACIÓN': r.numId||',
+      'NÚMERO DE IDENTIFICACIÓN': r.numId||'',
       'ID DE OPERACIÓN EN MERCADO PAGO': r.idOpMP,
       'TIPO DE OPERACIÓN': r.tipoOp,
       'MONEDA': r.moneda,
