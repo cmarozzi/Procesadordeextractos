@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Procesador de extractos</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -145,6 +148,222 @@ table.data tr:hover td{background:var(--bg2);}
 .tooltip-icon:hover + .tooltip-box{opacity:1;}
 
 .screen{display:none;}.screen.active{display:block;}
+
+/* ── dLOCAL ─────────────────────────────────────────────────────────── */
+.dlocal-screen { display:none; }
+.dlocal-screen.active { display:block; }
+.dlocal-screen .container { max-width:960px; margin:0 auto; padding:32px 24px 64px; }
+.dlocal-screen .card { background:#fff; border:1px solid rgba(0,0,0,.13); border-radius:12px; padding:24px; margin-bottom:20px; box-shadow:0 2px 16px rgba(0,0,0,.06); }
+.dlocal-screen .card h2 { font-size:15px; font-weight:600; margin-bottom:4px; }
+.dlocal-screen .card p.hint { font-size:13px; color:#6B6B6B; margin-bottom:16px; }
+.dlocal-screen .uploads { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.dlocal-screen .drop { border:1.5px dashed rgba(0,0,0,.13); border-radius:10px; padding:20px 16px; text-align:center; cursor:pointer; transition:all .15s; background:#F5F4F0; position:relative; }
+.dlocal-screen .drop:hover,.dlocal-screen .drop.dragover { border-color:var(--orange); background:var(--orange-bg); }
+.dlocal-screen .drop.loaded { border-color:var(--green); border-style:solid; background:var(--green-bg); }
+.dlocal-screen .drop.error { border-color:var(--red); border-style:solid; background:var(--red-bg); }
+.dlocal-screen .drop input[type=file] { position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%; }
+.dlocal-screen .drop .label { font-size:13px; font-weight:600; margin-bottom:4px; }
+.dlocal-screen .drop .status { font-size:12px; color:#6B6B6B; }
+.dlocal-screen .drop.loaded .status { color:var(--green); font-weight:500; }
+.dlocal-screen .drop.error .status { color:var(--red); font-weight:500; }
+.dlocal-screen .drop .filename { font-size:11px; margin-top:4px; color:#6B6B6B; word-break:break-all; }
+.dlocal-screen .btn { background:var(--orange); color:white; border:none; padding:12px 24px; border-radius:10px; font-size:14px; font-weight:600; cursor:pointer; font-family:var(--font); }
+.dlocal-screen .btn:hover:not(:disabled) { background:#e03e10; }
+.dlocal-screen .btn:disabled { background:#D1D5DB; cursor:not-allowed; }
+.dlocal-screen .btn.secondary { background:white; color:#3B3B3B; border:1px solid rgba(0,0,0,.13); }
+.dlocal-screen .btn.secondary:hover:not(:disabled) { background:#F5F4F0; }
+
+/* dLocal remaining styles */
+.dlocal-screen .logo {
+    width: 48px; height: 48px;
+    border-radius: 12px;
+    background: var(--primary);
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-weight: 700; font-size: 26px;
+  }
+.dlocal-screen .subtitle { color: var(--text-muted); font-size: 13px; margin-top: 2px; }
+.dlocal-screen .tip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: #E5E7EB;
+    color: var(--text-muted);
+    font-size: 10px;
+    font-weight: 700;
+    margin-left: 6px;
+    cursor: help;
+    position: relative;
+    vertical-align: middle;
+  }
+.dlocal-screen .tip .tip-text {
+    visibility: hidden;
+    opacity: 0;
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1F2937;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 1.4;
+    white-space: normal;
+    width: 240px;
+    text-align: left;
+    z-index: 20;
+    box-shadow: 0 4px 12px rgba(0,0,0,.15);
+    transition: opacity .15s ease;
+    pointer-events: none;
+  }
+.dlocal-screen .tip-text { visibility: visible; opacity: 1; }
+.dlocal-screen .saldos {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px dashed var(--border);
+  }
+.dlocal-screen .saldos { grid-template-columns: 1fr; }
+.dlocal-screen .saldo-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+.dlocal-screen .saldo-field label {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+.dlocal-screen .saldo-input-wrap {
+    display: flex;
+    align-items: stretch;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    background: white;
+  }
+.dlocal-screen .saldo-input-wrap .prefix {
+    display: flex; align-items: center;
+    padding: 0 10px;
+    background: #F9FAFB;
+    border-right: 1px solid var(--border);
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 600;
+  }
+.dlocal-screen .saldo-input-wrap input {
+    flex: 1;
+    padding: 8px 12px;
+    border: none;
+    font-size: 13px;
+    font-family: inherit;
+    outline: none;
+    background: transparent;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+  }
+.dlocal-screen .actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-top: 8px;
+  }
+.dlocal-screen .field {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+.dlocal-screen .field input {
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 13px;
+    font-family: inherit;
+    width: 110px;
+  }
+.dlocal-screen .preview { display: none; }
+.dlocal-screen .preview.visible { display: block; }
+.dlocal-screen .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+.dlocal-screen .stat {
+    background: #F9FAFB;
+    padding: 14px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+  }
+.dlocal-screen .stat .value { font-size: 22px; font-weight: 600; color: var(--text); }
+.dlocal-screen .stat .label { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+.dlocal-screen .num { text-align: right; font-variant-numeric: tabular-nums; }
+.dlocal-screen .tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+.dlocal-screen .tab {
+    padding: 8px 14px;
+    font-size: 13px;
+    color: var(--text-muted);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    font-weight: 500;
+    margin-bottom: -1px;
+  }
+.dlocal-screen .tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+.dlocal-screen .table-wrapper { max-height: 320px; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; }
+.dlocal-screen .commissions {
+    background: var(--primary-light);
+    padding: 14px 16px;
+    border-radius: 10px;
+    margin-top: 16px;
+    font-size: 13px;
+  }
+.dlocal-screen .commissions strong { display: block; margin-bottom: 6px; color: var(--primary-dark); }
+.dlocal-screen .commissions ul { list-style: none; margin: 0; padding: 0; }
+.dlocal-screen .commissions li { display: flex; justify-content: space-between; padding: 3px 0; font-variant-numeric: tabular-nums; }
+.dlocal-screen .notice {
+    background: #FFFBEB;
+    border-left: 3px solid var(--warning);
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-size: 12px;
+    color: #92400E;
+    margin-top: 12px;
+  }
+.dlocal-screen .error-msg {
+    background: #FEF2F2;
+    border-left: 3px solid var(--error);
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    color: var(--error);
+    margin-top: 12px;
+    display: none;
+  }
+.dlocal-screen .error-msg.visible { display: block; }
+.dlocal-screen .spinner {
+    display: inline-block;
+    width: 14px; height: 14px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    vertical-align: middle;
+    margin-right: 8px;
+  }
+
 </style>
 </head>
 <body>
@@ -188,8 +407,7 @@ table.data tr:hover td{background:var(--bg2);}
           <h3>Extracto de Mercado Pago</h3>
           <p>Clasifica los movimientos, asigna ID y nombre de cuenta.</p>
         </div>
-        <div class="menu-card coming-soon" id="card-dlocal">
-          <span class="soon-badge">Próximamente</span>
+        <div class="menu-card" id="card-dlocal" onclick="selectOutput('dlocal')">
           <span class="mc-icon">🏦</span>
           <h3>Extracto de dLocal</h3>
           <p>Procesa los balances de dLocal y arroja el extracto para importar a Odoo.</p>
@@ -265,6 +483,150 @@ table.data tr:hover td{background:var(--bg2);}
       Excel con hojas según el reporte seleccionado
     </p>
   </div>
+
+<!-- ── dLOCAL SCREEN ──────────────────────────────────────────── -->
+<div class="dlocal-screen" id="screen-dlocal">
+  <div style="padding:1rem 0 0.5rem">
+    <button class="btn-secondary" onclick="closeDlocal()" style="display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:var(--bg);border:0.5px solid var(--border2);border-radius:8px;font-size:13px;cursor:pointer;font-family:var(--font);">← Volver al menú</button>
+  </div>
+  <div class="container">
+    
+  <header>
+    <div class="logo">F</div>
+    <div>
+      <h1>Extractos DLOCAL</h1>
+      <div class="subtitle">Generador de extracto mensual para subir a Odoo · Fudo</div>
+    </div>
+  </header>
+
+  <div class="card">
+    <h2>1 · Subí los 4 archivos</h2>
+    <p class="hint">Los archivos se procesan en tu navegador. No se sube nada a ningún servidor.</p>
+    <div class="uploads">
+      <label class="drop" id="drop-dlocal">
+        <input type="file" accept=".csv" data-key="dlocal">
+        <div class="label">
+          DLOCAL FUDO (CSV)
+          <span class="tip" onclick="event.preventDefault()">?<span class="tip-text">Reporte <b>"cleared transactions"</b> descargable desde la página de dlocal Fudo.</span></span>
+        </div>
+        <div class="status">Sin cargar</div>
+        <div class="filename"></div>
+      </label>
+      <label class="drop" id="drop-brl">
+        <input type="file" accept=".csv" data-key="brl">
+        <div class="label">
+          DLOCAL BRASIL (CSV)
+          <span class="tip" onclick="event.preventDefault()">?<span class="tip-text">Reporte <b>"cleared transactions"</b> descargable desde la página de dlocal Deli Brasil.</span></span>
+        </div>
+        <div class="status">Sin cargar</div>
+        <div class="filename"></div>
+      </label>
+      <label class="drop" id="drop-plantilla">
+        <input type="file" accept=".xlsx,.xls" data-key="plantilla">
+        <div class="label">
+          Plantilla Odoo (XLSX)
+          <span class="tip" onclick="event.preventDefault()">?<span class="tip-text">Base de clientes descargada de Odoo.</span></span>
+        </div>
+        <div class="status">Sin cargar</div>
+        <div class="filename"></div>
+      </label>
+      <label class="drop" id="drop-accountss">
+        <input type="file" accept=".csv" data-key="accountss">
+        <div class="label">
+          Accountss DASH (CSV)
+          <span class="tip" onclick="event.preventDefault()">?<span class="tip-text">Base de clientes descargada de DASH.</span></span>
+        </div>
+        <div class="status">Sin cargar</div>
+        <div class="filename"></div>
+      </label>
+    </div>
+
+    <div class="saldos">
+      <div class="saldo-field">
+        <label for="saldo-dlocal">
+          Saldo inicial DLOCAL FUDO
+          <span class="tip" style="margin-left:4px;">?<span class="tip-text">Saldo inicial de la cuenta DLOCAL FUDO al comienzo del período. Se agrega al final de la solapa DLOCAL en el archivo generado.</span></span>
+        </label>
+        <div class="saldo-input-wrap">
+          <span class="prefix">USD</span>
+          <input type="text" id="saldo-dlocal" inputmode="decimal" placeholder="0,00">
+        </div>
+      </div>
+      <div class="saldo-field">
+        <label for="saldo-brl">
+          Saldo inicial DLOCAL BRASIL
+          <span class="tip" style="margin-left:4px;">?<span class="tip-text">Saldo inicial de la cuenta DLOCAL Deli Brasil al comienzo del período. Se agrega al final de la solapa DLOCAL BRL en el archivo generado.</span></span>
+        </label>
+        <div class="saldo-input-wrap">
+          <span class="prefix">BRL</span>
+          <input type="text" id="saldo-brl" inputmode="decimal" placeholder="0,00">
+        </div>
+      </div>
+    </div>
+
+    <div class="error-msg" id="error-msg"></div>
+  </div>
+
+  <div class="card">
+    <h2>2 · Procesá</h2>
+    <p class="hint">El mes de operatoria se calcula automáticamente de la fecha más reciente, o podés forzarlo.</p>
+    <div class="actions">
+      <div class="field">
+        <label for="mes-input">Mes (opcional):</label>
+        <input type="text" id="mes-input" placeholder="MM-AAAA" maxlength="7">
+      </div>
+      <button class="btn" id="btn-procesar" disabled>Procesar archivos</button>
+    </div>
+  </div>
+
+  <div class="card preview" id="preview">
+    <h2>3 · Revisá y descargá</h2>
+    <p class="hint">Verificá totales y comisiones antes de bajar el archivo final.</p>
+
+    <div class="summary-grid" id="summary-grid"></div>
+
+    <div class="commissions" id="commissions"></div>
+
+    <div class="tabs" id="tabs">
+      <div class="tab active" data-sheet="dlocal">DLOCAL (<span id="count-dlocal">0</span>)</div>
+      <div class="tab" data-sheet="brl">DLOCAL BRL (<span id="count-brl">0</span>)</div>
+    </div>
+    <div class="table-wrapper">
+      <table id="preview-table">
+        <thead>
+          <tr>
+            <th>Fecha</th><th>Descripción</th><th>Contacto/ID DB</th><th>Referencia</th>
+            <th>Mon.</th><th class="num">Imp. moneda</th><th class="num">Importe</th><th class="num">Invoice</th>
+          </tr>
+        </thead>
+        <tbody id="preview-tbody"></tbody>
+      </table>
+    </div>
+    <div class="notice">
+      <strong>Recordá:</strong> la fila <em>"Transf. Dlocal to SVB"</em> (si corresponde) se sigue agregando a mano en el archivo descargado.
+    </div>
+
+    <div class="actions" style="margin-top: 20px;">
+      <div class="field" style="color: var(--text);">
+        <span>Filas con <strong>#N/D</strong> a revisar: <strong id="nd-count">0</strong></span>
+      </div>
+      <div style="display: flex; gap: 8px;">
+        <button class="btn secondary" id="btn-descargar">Descargar XLSX (revisión)</button>
+        <button class="btn" id="btn-descargar-csv">
+          Descargar CSVs para Odoo
+          <span class="tip" style="margin-left: 4px; background: rgba(255,255,255,.25); color: white;">?<span class="tip-text">Baja 2 archivos CSV (uno por cada cuenta) en formato listo para importar en Odoo. Si el navegador te pregunta si permitir descargas múltiples, aceptalo.</span></span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <p>Hecho para Fudo · Procesado 100% en tu navegador · <a href="#" id="reset-link">Empezar de nuevo</a></p>
+  </footer>
+
+  </div>
+</div>
+
 </div>
 
 <script>
@@ -391,9 +753,25 @@ function goStep(n) {
   setStep(n);
 }
 function selectOutput(type) {
+  if(type==='dlocal') {
+    // Show dLocal directly, skip steps
+    document.getElementById('screen-1').classList.remove('active');
+    document.getElementById('screen-dlocal').classList.add('active');
+    [1,2,3].forEach(i => {
+      const d=document.getElementById('step-'+i);
+      d.classList.remove('active','done');
+    });
+    return;
+  }
   selectedOutput=type;
-  ['td','extracto','dlocal'].forEach(t => { const el=document.getElementById('card-'+t); if(el) el.classList.toggle('selected',t===type); });
+  ['td','extracto'].forEach(t => { const el=document.getElementById('card-'+t); if(el) el.classList.toggle('selected',t===type); });
   document.getElementById('btn-next-1').disabled=false;
+}
+
+function closeDlocal() {
+  document.getElementById('screen-dlocal').classList.remove('active');
+  document.getElementById('screen-1').classList.add('active');
+  document.getElementById('step-1').classList.add('active');
 }
 
 // ── FILES ─────────────────────────────────────────────────────
@@ -883,6 +1261,678 @@ function exportExcel(){
     XLSX.writeFile(wb, 'Extracto bancario_'+fecha+'.xlsx');
   }
 }
+
+// ── dLOCAL JS ─────────────────────────────────────────────────────
+
+// ========================================================================= //
+// Utilidades de parseo                                                       //
+// ========================================================================= //
+function parseNumEs(s) {
+  if (s === null || s === undefined || s === '') return 0;
+  if (typeof s === 'number') return s;
+  s = String(s).trim();
+  if (!s) return 0;
+  // formato español "1.234,56" -> "1234.56"
+  if (s.indexOf(',') !== -1 && s.lastIndexOf(',') > s.lastIndexOf('.') && s.split(',').length === 2) {
+    s = s.replace(/\./g, '').replace(',', '.');
+  }
+  const n = parseFloat(s);
+  return isNaN(n) ? 0 : n;
+}
+
+function parseDateAny(s) {
+  if (!s) return null;
+  s = String(s).trim();
+  // ISO: 2026-07-15 01:30:32 (con o sin hora)
+  let m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})(?:[ T](\d{1,2}):(\d{1,2})(?::(\d{1,2}))?)?/);
+  if (m) return new Date(Date.UTC(+m[1], +m[2]-1, +m[3], +(m[4]||0), +(m[5]||0), +(m[6]||0)));
+  // DD/MM/YYYY HH:MM
+  m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:[ T](\d{1,2}):(\d{1,2})(?::(\d{1,2}))?)?/);
+  if (m) return new Date(Date.UTC(+m[3], +m[2]-1, +m[1], +(m[4]||0), +(m[5]||0), +(m[6]||0)));
+  return null;
+}
+
+// Fecha sin hora (para display "solo día") — útil en algunos casos, pero
+// mantenemos la fecha completa como valor principal para ordenar correctamente.
+function fechaSoloDiaOf(d) {
+  return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+}
+
+function firstInvoiceId(inv) {
+  if (!inv) return null;
+  const head = String(inv).split('::')[0].trim();
+  return head || null;
+}
+
+function fmtDate(d) {
+  const dd = String(d.getUTCDate()).padStart(2, '0');
+  const mm = String(d.getUTCMonth()+1).padStart(2, '0');
+  return `${dd}/${mm}/${d.getUTCFullYear()}`;
+}
+
+function fmtNum(n, dec) {
+  if (n === null || n === undefined || n === '') return '';
+  if (typeof n !== 'number') return String(n);
+  return n.toLocaleString('es-AR', { minimumFractionDigits: dec ?? 2, maximumFractionDigits: dec ?? 2 });
+}
+
+// ========================================================================= //
+// Cargas de archivos                                                         //
+// ========================================================================= //
+function readFileAsText(file) {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(r.result);
+    r.onerror = () => reject(r.error);
+    r.readAsText(file, 'utf-8');
+  });
+}
+function readFileAsArrayBuffer(file) {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(r.result);
+    r.onerror = () => reject(r.error);
+    r.readAsArrayBuffer(file);
+  });
+}
+
+async function parseCsv(file, forcedDelimiter) {
+  const text = await readFileAsText(file);
+  // Autodetect delimiter (contar ; vs , en primer 2KB)
+  let delim = forcedDelimiter;
+  if (!delim) {
+    const sample = text.slice(0, 2048);
+    delim = (sample.split(';').length > sample.split(',').length) ? ';' : ',';
+  }
+  const res = Papa.parse(text, {
+    delimiter: delim, header: true, skipEmptyLines: true,
+  });
+  return res.data;
+}
+
+async function parsePlantilla(file) {
+  // Devuelve dict {referenciaDASH -> idOdoo}
+  const buffer = await readFileAsArrayBuffer(file);
+  const wb = new ExcelJS.Workbook();
+  await wb.xlsx.load(buffer);
+  const ws = wb.worksheets[0];
+  const mapping = {};
+  let first = true;
+  ws.eachRow({ includeEmpty: false }, (row) => {
+    if (first) { first = false; return; }
+    const refCell = row.getCell(8); // col H
+    const idCell = row.getCell(9);  // col I
+    let ref = refCell && refCell.value;
+    let idO = idCell && idCell.value;
+    if (ref && typeof ref === 'object' && 'result' in ref) ref = ref.result;
+    if (idO && typeof idO === 'object' && 'result' in idO) idO = idO.result;
+    if (ref === null || ref === undefined || ref === '') return;
+    const key = String(parseInt(ref, 10)); // normalizar como string de int
+    if (key === 'NaN') return;
+    if (idO !== null && idO !== undefined && idO !== '') {
+      const n = Number(idO);
+      mapping[key] = isNaN(n) ? String(idO).trim() : n;
+    }
+  });
+  return mapping;
+}
+
+async function parseAccountss(file) {
+  const rows = await parseCsv(file, ';');
+  const mapping = {};
+  for (const r of rows) {
+    // Header esperado: ID;Nombre;País (a veces con BOM)
+    const idKey = r['ID'] ?? r['﻿ID'] ?? r[Object.keys(r)[0]];
+    const nombre = r['Nombre'] ?? r[Object.keys(r)[1]];
+    if (idKey && nombre) {
+      mapping[String(idKey).trim()] = String(nombre).trim();
+    }
+  }
+  return mapping;
+}
+
+// ========================================================================= //
+// Lógica de negocio                                                          //
+// ========================================================================= //
+function construirMovimientos(rawRows, plantilla, accountss, esBrl) {
+  const movs = [];
+  for (const r of rawRows) {
+    const fechaStr = r['Confirmation date'] || r['Creation date'] || '';
+    const fechaFull = parseDateAny(fechaStr);
+    if (!fechaFull) continue;
+    // Guardamos la fecha completa para ordenar (con hora) pero el valor de
+    // Excel es la fecha sola: Excel la muestra igual con formato dd/mm/yyyy.
+    const fecha = fechaSoloDiaOf(fechaFull);
+
+    const invoiceStr = (r['Invoice'] || '').trim();
+    const firstId = firstInvoiceId(invoiceStr);
+    let descripcion, contacto, invoiceVal;
+    if (firstId && /^\d+$/.test(firstId)) {
+      invoiceVal = parseInt(firstId, 10);
+      descripcion = accountss[firstId] || '#N/D';
+      contacto = plantilla[firstId] || '#N/D';
+    } else {
+      descripcion = '#N/D';
+      contacto = '#N/D';
+      invoiceVal = '#N/D';
+    }
+
+    const referencia = (r['Reference'] || '').trim() || null;
+    const moneda = (r['Local currency'] || '').trim() || null;
+    const localAmount = parseNumEs(r['Local amount']);
+    const amountUsd = parseNumEs(r['Amount']);
+
+    let importeEnMoneda, importe;
+    if (esBrl) {
+      importeEnMoneda = 0;
+      importe = localAmount;
+    } else {
+      importeEnMoneda = localAmount;
+      importe = amountUsd;
+    }
+
+    movs.push({
+      fecha,
+      fechaFull,   // usada sólo para orden cronológico dentro del día
+      descripcion,
+      contacto,
+      referencia,
+      monedaExtranjera: moneda,
+      importeEnMoneda,
+      importe,
+      invoice: invoiceVal,
+      transactionType: (r['Transaction type'] || 'PAYMENT').trim(),
+    });
+  }
+  return movs;
+}
+
+function eliminarPagoContracargo(movs) {
+  // Indexar PAYMENTs por (invoice, abs(importe))
+  const REVERSIONES = new Set(['CHARGEBACK', 'REFUND']);
+  const payIdx = new Map();
+  movs.forEach((m, i) => {
+    if (m.transactionType === 'PAYMENT' && typeof m.invoice === 'number') {
+      const key = m.invoice + '|' + Math.abs(m.importe).toFixed(6);
+      if (!payIdx.has(key)) payIdx.set(key, []);
+      payIdx.get(key).push(i);
+    }
+  });
+  const eliminar = new Set();
+  movs.forEach((m, i) => {
+    if (REVERSIONES.has(m.transactionType) && typeof m.invoice === 'number') {
+      const key = m.invoice + '|' + Math.abs(m.importe).toFixed(6);
+      const cands = (payIdx.get(key) || []).filter(j => !eliminar.has(j));
+      if (cands.length) {
+        eliminar.add(cands[0]);
+        eliminar.add(i);
+      }
+    }
+  });
+  return movs.filter((_, i) => !eliminar.has(i));
+}
+
+function fechaFinDelDia(d) {
+  // 23:59:59.999 UTC del día indicado — sitúa las comisiones al final del último día
+  return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), 23, 59, 59, 999));
+}
+
+function agregarComisionesNoBrl(movs, rawDlocalRows, mesLabel) {
+  if (!movs.length) return movs;
+  const feeByCurr = {};
+  for (const r of rawDlocalRows) {
+    const c = (r['Local currency'] || '').trim();
+    if (c && c !== 'BRL') {
+      feeByCurr[c] = (feeByCurr[c] || 0) + parseNumEs(r['Fee']);
+    }
+  }
+  const fechaMax = movs.reduce((mx, m) => (m.fecha > mx ? m.fecha : mx), movs[0].fecha);
+  const finDia = fechaFinDelDia(fechaMax);
+  const extras = [];
+  for (const moneda of ['CLP', 'COP', 'MXN']) {
+    if (moneda in feeByCurr) {
+      const label = `Comisiones ${mesLabel} ${moneda}`;
+      extras.push({
+        fecha: fechaMax, fechaFull: finDia, descripcion: label, contacto: null,
+        referencia: label, monedaExtranjera: null,
+        importeEnMoneda: null, importe: feeByCurr[moneda], invoice: null,
+      });
+    }
+  }
+  return movs.concat(extras);
+}
+
+function agregarComisionesBrl(movs, rawBrlRows, mesLabel) {
+  if (!movs.length) return movs;
+  let totalFee = 0, totalLocal = 0, totalAmount = 0;
+  for (const r of rawBrlRows) {
+    totalFee += parseNumEs(r['Fee']);
+    totalLocal += parseNumEs(r['Local amount']);
+    totalAmount += parseNumEs(r['Amount']);
+  }
+  const exchangeDiff = -(totalLocal - totalAmount);
+  const fechaMax = movs.reduce((mx, m) => (m.fecha > mx ? m.fecha : mx), movs[0].fecha);
+  const finDia = fechaFinDelDia(fechaMax);
+  const l1 = `Comisiones ${mesLabel} BRL`;
+  const l2 = `Comisiones ${mesLabel} BRL (exchange difference)`;
+  return movs.concat([
+    { fecha: fechaMax, fechaFull: finDia, descripcion: l1, contacto: null, referencia: l1,
+      monedaExtranjera: null, importeEnMoneda: null, importe: totalFee, invoice: null },
+    { fecha: fechaMax, fechaFull: finDia, descripcion: l2, contacto: null, referencia: l2,
+      monedaExtranjera: null, importeEnMoneda: null, importe: exchangeDiff, invoice: null },
+  ]);
+}
+
+// ========================================================================= //
+// Generación de XLSX con ExcelJS                                             //
+// ========================================================================= //
+const HEADERS = [
+  "Fecha","Descripción","Contacto/ID de la DB","Referencia",
+  "Moneda Extranjera","Importe en moneda","Importe","Invoice",
+];
+const COL_WIDTHS = [12, 35, 35, 55, 10, 14, 14, 12];
+
+function escribirSolapa(wb, nombre, movs, saldoInicial) {
+  const ws = wb.addWorksheet(nombre, { views: [{ state: 'frozen', ySplit: 1, zoomScale: 80 }] });
+  ws.addRow(HEADERS);
+  HEADERS.forEach((_, i) => {
+    ws.getColumn(i+1).width = COL_WIDTHS[i];
+  });
+  // Header en negrita
+  const headerRow = ws.getRow(1);
+  headerRow.font = { bold: true };
+
+  for (const m of movs) {
+    const row = ws.addRow([
+      m.fecha,
+      m.descripcion,
+      m.contacto,
+      m.referencia,
+      m.monedaExtranjera,
+      m.importeEnMoneda !== null ? m.importeEnMoneda : 0,
+      m.importe,
+      m.invoice,
+    ]);
+    row.getCell(1).numFmt = 'dd/mm/yyyy';
+    row.getCell(6).numFmt = '#,##0.00';
+    row.getCell(7).numFmt = '#,##0.00';
+  }
+
+  // Autofiltro cubriendo hasta las filas de movimientos (sin incluir saldo)
+  const filaUltimoMov = ws.rowCount;
+  ws.autoFilter = {
+    from: { row: 1, column: 1 },
+    to: { row: filaUltimoMov, column: HEADERS.length },
+  };
+
+  // Fila de SALDO INICIAL (si se proporcionó)
+  if (saldoInicial !== null && saldoInicial !== undefined && !isNaN(saldoInicial)) {
+    ws.addRow([]);  // fila vacía
+    ws.addRow([]);  // fila vacía
+    const saldoRow = ws.addRow([null, 'SALDO INICIAL', null, null, null, null, saldoInicial, null]);
+    saldoRow.getCell(2).font = { bold: true };
+    saldoRow.getCell(7).font = { bold: true };
+    saldoRow.getCell(7).numFmt = '#,##0.00';
+  }
+}
+
+async function generarXlsx(nombreArchivo, movsDlocal, movsBrl, saldoDlocal, saldoBrl) {
+  const wb = new ExcelJS.Workbook();
+  wb.creator = 'Fudo · Extractos DLOCAL';
+  wb.created = new Date();
+  escribirSolapa(wb, 'DLOCAL', movsDlocal, saldoDlocal);
+  escribirSolapa(wb, 'DLOCAL BRL', movsBrl, saldoBrl);
+  const buf = await wb.xlsx.writeBuffer();
+  saveAs(new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), nombreArchivo);
+}
+
+// ========================================================================= //
+// Exportación CSV para Odoo                                                  //
+// ========================================================================= //
+// Odoo espera: 7 columnas, ; delimiter, encoding Latin-1, CRLF,
+// números español (coma decimal), fecha dd/mm/yyyy, importes 2 decimales.
+// NO incluye la columna Invoice ni el Saldo Inicial.
+const HEADERS_ODOO = [
+  "Fecha","Descripción","Contacto/ID de la DB","Referencia",
+  "Moneda Extranjera","Importe en Moneda","Importe",
+];
+
+function fmtNumEs(n, dec) {
+  if (n === null || n === undefined || n === '') return '';
+  if (typeof n !== 'number' || isNaN(n)) return String(n);
+  const opts = { minimumFractionDigits: dec ?? 2, maximumFractionDigits: dec ?? 2, useGrouping: true };
+  // toLocaleString es-AR: usa . como miles y , como decimal, tal como Odoo espera
+  return n.toLocaleString('es-AR', opts);
+}
+
+function csvEscape(v) {
+  if (v === null || v === undefined) return '';
+  const s = String(v);
+  // Si contiene ; " o salto de línea, envolver en comillas y escapar
+  if (/[;"\r\n]/.test(s)) {
+    return '"' + s.replace(/"/g, '""') + '"';
+  }
+  return s;
+}
+
+function movsAOdooCsv(movs) {
+  const lines = [HEADERS_ODOO.map(csvEscape).join(';')];
+  for (const m of movs) {
+    const fecha = m.fecha ? fmtDate(m.fecha) : '';
+    const impMon = (m.importeEnMoneda !== null && m.importeEnMoneda !== undefined)
+      ? fmtNumEs(m.importeEnMoneda) : '0,00';
+    const imp = (typeof m.importe === 'number') ? fmtNumEs(m.importe) : '';
+    const row = [
+      fecha,
+      m.descripcion ?? '',
+      m.contacto ?? '',
+      m.referencia ?? '',
+      m.monedaExtranjera ?? '',
+      impMon,
+      imp,
+    ].map(csvEscape).join(';');
+    lines.push(row);
+  }
+  // CRLF
+  return lines.join('\r\n') + '\r\n';
+}
+
+// Convertir string UTF-8 a bytes Latin-1 (Windows-1252). Caracteres fuera del
+// rango se reemplazan por '?' — para nombres es/pt-Latin no debería pasar.
+function utf8ToLatin1Bytes(s) {
+  const bytes = new Uint8Array(s.length);
+  for (let i = 0; i < s.length; i++) {
+    const code = s.charCodeAt(i);
+    bytes[i] = code < 256 ? code : 63; // '?'
+  }
+  return bytes;
+}
+
+function descargarCsv(nombreArchivo, contenido) {
+  const bytes = utf8ToLatin1Bytes(contenido);
+  const blob = new Blob([bytes], { type: 'text/csv;charset=iso-8859-1' });
+  saveAs(blob, nombreArchivo);
+}
+
+function rangoFechasStr(movs) {
+  const fechas = movs.map(m => m.fecha).filter(Boolean);
+  if (!fechas.length) return '';
+  const dm = d => String(d.getUTCDate()).padStart(2,'0') + '.' + String(d.getUTCMonth()+1).padStart(2,'0');
+  const min = new Date(Math.min(...fechas.map(d => d.getTime())));
+  const max = new Date(Math.max(...fechas.map(d => d.getTime())));
+  return `${dm(min)} al ${dm(max)}`;
+}
+
+async function descargarCsvsOdoo(movsDlocal, movsBrl) {
+  const rangoDl = rangoFechasStr(movsDlocal);
+  const rangoBr = rangoFechasStr(movsBrl);
+  const csvDl = movsAOdooCsv(movsDlocal);
+  const csvBr = movsAOdooCsv(movsBrl);
+  descargarCsv(`Extracto Bancario LLC - DLocal ${rangoDl}.csv`, csvDl);
+  // Pequeño delay para que el navegador no unifique/bloquee la segunda descarga
+  await new Promise(r => setTimeout(r, 400));
+  descargarCsv(`Extracto Bancario LLC - DLocal brl ${rangoBr}.csv`, csvBr);
+}
+
+function parseSaldoInput(s) {
+  if (!s) return null;
+  s = String(s).trim();
+  if (!s) return null;
+  // Aceptar coma o punto como decimal, y . o espacio como separador de miles
+  const clean = s.replace(/\s+/g, '');
+  // Si tiene coma decimal (formato español): "1.234,56" → "1234.56"
+  if (clean.indexOf(',') !== -1 && clean.lastIndexOf(',') > clean.lastIndexOf('.')) {
+    return parseFloat(clean.replace(/\./g, '').replace(',', '.'));
+  }
+  return parseFloat(clean.replace(/,/g, ''));
+}
+
+// ========================================================================= //
+// Pipeline                                                                   //
+// ========================================================================= //
+async function procesarTodo(files, mesLabelManual) {
+  const [rawDlocalAll, rawBrl, plantilla, accountss] = await Promise.all([
+    parseCsv(files.dlocal),   // auto-detecta delimiter
+    parseCsv(files.brl),      // auto-detecta delimiter
+    parsePlantilla(files.plantilla),
+    parseAccountss(files.accountss),
+  ]);
+
+  const rawDlocal = rawDlocalAll.filter(r => (r['Local currency'] || '').trim() !== 'BRL');
+
+  let movsDlocal = construirMovimientos(rawDlocal, plantilla, accountss, false);
+  let movsBrl = construirMovimientos(rawBrl, plantilla, accountss, true);
+
+  movsDlocal = eliminarPagoContracargo(movsDlocal);
+  movsBrl = eliminarPagoContracargo(movsBrl);
+
+  // Inferir mes label
+  let mesLabel = mesLabelManual;
+  if (!mesLabel) {
+    const allFechas = movsDlocal.concat(movsBrl).map(m => m.fecha).filter(Boolean);
+    const maxFecha = allFechas.length ? new Date(Math.max(...allFechas.map(d => d.getTime()))) : new Date();
+    mesLabel = String(maxFecha.getUTCMonth()+1).padStart(2, '0') + '-' + maxFecha.getUTCFullYear();
+  }
+
+  movsDlocal = agregarComisionesNoBrl(movsDlocal, rawDlocal, mesLabel);
+  movsBrl = agregarComisionesBrl(movsBrl, rawBrl, mesLabel);
+
+  // Sort estable por fecha (solo día). Dentro del día preserva el orden del CSV
+  // (DESC por hora). Las filas de comisiones tienen descripcion tipo string,
+  // así que las llevamos al final del último día.
+  const sortKey = m => [m.fecha.getTime(), (typeof m.descripcion === 'string' && !/^\d+$/.test(m.descripcion)) ? 1 : 0];
+  const cmp = (a, b) => {
+    const ka = sortKey(a), kb = sortKey(b);
+    return ka[0] - kb[0] || ka[1] - kb[1];
+  };
+  movsDlocal.sort(cmp);
+  movsBrl.sort(cmp);
+
+  // Determinar nombre de archivo por rango de fechas
+  const fechas = rawDlocalAll.map(r => parseDateAny(r['Confirmation date'])).filter(Boolean);
+  let nombre = 'Extractos.xlsx';
+  if (fechas.length) {
+    const fmin = new Date(Math.min(...fechas.map(d => d.getTime())));
+    const fmax = new Date(Math.max(...fechas.map(d => d.getTime())));
+    const dm = d => String(d.getUTCDate()).padStart(2,'0') + '.' + String(d.getUTCMonth()+1).padStart(2,'0');
+    nombre = `Extractos ${dm(fmin)} al ${dm(fmax)}.xlsx`;
+  }
+
+  return { movsDlocal, movsBrl, nombre, mesLabel };
+}
+
+// ========================================================================= //
+// UI                                                                         //
+// ========================================================================= //
+const FILES = { dlocal: null, brl: null, plantilla: null, accountss: null };
+let RESULT = null;
+let PREVIEW_SHEET = 'dlocal';
+
+function setupDropzone(id, expectedExt) {
+  const zone = document.getElementById(id);
+  const input = zone.querySelector('input[type=file]');
+  const key = input.dataset.key;
+
+  const setLoaded = (file) => {
+    FILES[key] = file;
+    zone.classList.remove('error');
+    zone.classList.add('loaded');
+    zone.querySelector('.status').textContent = 'Cargado ✓';
+    zone.querySelector('.filename').textContent = file.name;
+    updateProcesarBtn();
+    hideError();
+  };
+  const setError = (msg) => {
+    zone.classList.remove('loaded');
+    zone.classList.add('error');
+    zone.querySelector('.status').textContent = msg;
+    zone.querySelector('.filename').textContent = '';
+  };
+
+  input.addEventListener('change', () => {
+    if (!input.files.length) return;
+    setLoaded(input.files[0]);
+  });
+  zone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    zone.classList.add('dragover');
+  });
+  zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+  zone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    zone.classList.remove('dragover');
+    if (!e.dataTransfer.files.length) return;
+    const f = e.dataTransfer.files[0];
+    input.files = e.dataTransfer.files;
+    setLoaded(f);
+  });
+}
+
+function updateProcesarBtn() {
+  const ok = Object.values(FILES).every(f => f !== null);
+  document.getElementById('btn-procesar').disabled = !ok;
+}
+
+function showError(msg) {
+  const el = document.getElementById('error-msg');
+  el.textContent = msg;
+  el.classList.add('visible');
+}
+function hideError() {
+  document.getElementById('error-msg').classList.remove('visible');
+}
+
+function renderPreview(result) {
+  document.getElementById('preview').classList.add('visible');
+
+  const totalDlocal = result.movsDlocal.length;
+  const totalBrl = result.movsBrl.length;
+  document.getElementById('count-dlocal').textContent = totalDlocal;
+  document.getElementById('count-brl').textContent = totalBrl;
+
+  const sumImporte = arr => arr.reduce((s, m) => s + (typeof m.importe === 'number' ? m.importe : 0), 0);
+  const ndCount = result.movsDlocal.concat(result.movsBrl).filter(m => m.contacto === '#N/D').length;
+  document.getElementById('nd-count').textContent = ndCount;
+
+  document.getElementById('summary-grid').innerHTML = `
+    <div class="stat"><div class="value">${totalDlocal}</div><div class="label">Filas DLOCAL</div></div>
+    <div class="stat"><div class="value">${totalBrl}</div><div class="label">Filas DLOCAL BRL</div></div>
+    <div class="stat"><div class="value">${result.mesLabel}</div><div class="label">Mes operatoria</div></div>
+    <div class="stat"><div class="value">USD ${fmtNum(sumImporte(result.movsDlocal))}</div><div class="label">Total DLOCAL (importe)</div></div>
+    <div class="stat"><div class="value">BRL ${fmtNum(sumImporte(result.movsBrl))}</div><div class="label">Total DLOCAL BRL (importe)</div></div>
+  `;
+
+  const comMovs = result.movsDlocal.concat(result.movsBrl)
+    .filter(m => typeof m.descripcion === 'string' && m.descripcion.startsWith('Comisiones'));
+  document.getElementById('commissions').innerHTML =
+    '<strong>Comisiones agregadas</strong><ul>' +
+    comMovs.map(m => `<li><span>${m.descripcion}</span><span>${fmtNum(m.importe)}</span></li>`).join('') +
+    '</ul>';
+
+  renderTable(PREVIEW_SHEET);
+}
+
+function renderTable(sheet) {
+  const movs = sheet === 'dlocal' ? RESULT.movsDlocal : RESULT.movsBrl;
+  const tbody = document.getElementById('preview-tbody');
+  tbody.innerHTML = '';
+  // Show all rows (limit 500 for performance)
+  const rows = movs.slice(0, 500);
+  for (const m of rows) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${fmtDate(m.fecha)}</td>
+      <td>${escapeHtml(String(m.descripcion ?? ''))}</td>
+      <td>${escapeHtml(String(m.contacto ?? ''))}</td>
+      <td>${escapeHtml(String(m.referencia ?? ''))}</td>
+      <td>${escapeHtml(String(m.monedaExtranjera ?? ''))}</td>
+      <td class="num">${m.importeEnMoneda !== null && m.importeEnMoneda !== undefined ? fmtNum(m.importeEnMoneda) : ''}</td>
+      <td class="num">${typeof m.importe === 'number' ? fmtNum(m.importe) : escapeHtml(String(m.importe ?? ''))}</td>
+      <td class="num">${escapeHtml(String(m.invoice ?? ''))}</td>
+    `;
+    tbody.appendChild(tr);
+  }
+  if (movs.length > 500) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td colspan="8" style="text-align:center; color: var(--text-muted); font-style: italic;">… mostrando 500 de ${movs.length} filas — se descargan todas en el XLSX</td>`;
+    tbody.appendChild(tr);
+  }
+}
+
+function escapeHtml(s) {
+  return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+// Wiring
+['drop-dlocal','drop-brl','drop-plantilla','drop-accountss'].forEach(id => setupDropzone(id));
+
+document.getElementById('btn-procesar').addEventListener('click', async () => {
+  const btn = document.getElementById('btn-procesar');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Procesando…';
+  hideError();
+  try {
+    const mesLabel = document.getElementById('mes-input').value.trim();
+    RESULT = await procesarTodo(FILES, mesLabel || null);
+    renderPreview(RESULT);
+    document.getElementById('preview').scrollIntoView({ behavior: 'smooth' });
+  } catch (e) {
+    console.error(e);
+    showError('Error al procesar: ' + (e.message || e));
+  } finally {
+    btn.innerHTML = 'Procesar archivos';
+    btn.disabled = false;
+  }
+});
+
+document.getElementById('btn-descargar').addEventListener('click', async () => {
+  if (!RESULT) return;
+  const btn = document.getElementById('btn-descargar');
+  const label = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Generando…';
+  try {
+    const saldoDlocal = parseSaldoInput(document.getElementById('saldo-dlocal').value);
+    const saldoBrl = parseSaldoInput(document.getElementById('saldo-brl').value);
+    await generarXlsx(RESULT.nombre, RESULT.movsDlocal, RESULT.movsBrl, saldoDlocal, saldoBrl);
+  } catch (e) {
+    showError('Error al generar el XLSX: ' + (e.message || e));
+  } finally {
+    btn.innerHTML = label;
+    btn.disabled = false;
+  }
+});
+
+document.getElementById('btn-descargar-csv').addEventListener('click', async () => {
+  if (!RESULT) return;
+  const btn = document.getElementById('btn-descargar-csv');
+  const label = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Generando…';
+  try {
+    await descargarCsvsOdoo(RESULT.movsDlocal, RESULT.movsBrl);
+  } catch (e) {
+    showError('Error al generar los CSVs: ' + (e.message || e));
+  } finally {
+    btn.innerHTML = label;
+    btn.disabled = false;
+  }
+});
+
+document.getElementById('tabs').addEventListener('click', (e) => {
+  const t = e.target.closest('.tab');
+  if (!t) return;
+  document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+  t.classList.add('active');
+  PREVIEW_SHEET = t.dataset.sheet;
+  if (RESULT) renderTable(PREVIEW_SHEET);
+});
+
+document.getElementById('reset-link').addEventListener('click', (e) => {
+  e.preventDefault();
+  location.reload();
+});
+
 </script>
 </body>
 </html>
