@@ -1633,10 +1633,17 @@ function calcularConciliacion() {
     var d=parseFechaLocal(fechaLib); return d>=desdeD && d<=hastaD;
   }
 
-  // Sum extracto rows (filtered by fechaLib in periodo)
-  var extractoRows = allRows.filter(function(r){ return enPer(r.fechaLib||r.fecha); });
-  var sumExtracto = extractoRows.reduce(function(s,r){ return s+r.monto+r.comis+r.imp; }, 0);
-  var teorico = si + sumExtracto;
+  // Extracto = todos menos paid online, filtrado por periodo
+  var extractoRows = allRows.filter(function(r){
+    return r.concept !== 'paid_online' && enPer(r.fechaLib||r.fecha);
+  });
+  var sumExtracto = extractoRows.reduce(function(s,r){ return s+r.monto+r.comis; }, 0);
+  var saldoTeorico2 = si + sumExtracto;
+  // Paid online filtrado por periodo
+  var sumPO = allRows.filter(function(r){
+    return r.concept === 'paid_online' && enPer(r.fechaLib||r.fecha);
+  }).reduce(function(s,r){ return s+r.monto+r.comis; }, 0);
+  var teorico = saldoTeorico2 + sumPO;
   var diff    = libData.saldoFinal ? teorico - libData.saldoFinal : null;
   var ok      = diff !== null && Math.abs(diff) < 0.02;
   var okC     = ok ? 'var(--green)' : 'var(--red)';
@@ -1644,18 +1651,18 @@ function calcularConciliacion() {
   var okBd    = ok ? 'var(--green-bd)' : 'rgba(226,75,74,.25)';
 
   document.getElementById('conciliacion-resultado').innerHTML =
-    '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1rem">' +
+    '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1rem">' +
       '<div style="background:var(--bg2);border-radius:8px;padding:12px 14px">' +
         '<div style="font-size:10px;color:var(--text2);font-family:var(--mono);text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px">Saldo inicial Odoo</div>' +
         '<div style="font-size:18px;font-weight:500;font-family:var(--mono)">' + fmtN(si) + '</div>' +
       '</div>' +
       '<div style="background:var(--bg2);border-radius:8px;padding:12px 14px">' +
-        '<div style="font-size:10px;color:var(--text2);font-family:var(--mono);text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px">+ Movimientos periodo</div>' +
+        '<div style="font-size:10px;color:var(--text2);font-family:var(--mono);text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px">Extractos (sin paid online)</div>' +
         '<div style="font-size:18px;font-weight:500;font-family:var(--mono)">' + fmtN(sumExtracto) + '</div>' +
       '</div>' +
       '<div style="background:var(--bg2);border-radius:8px;padding:12px 14px">' +
-        '<div style="font-size:10px;color:var(--text2);font-family:var(--mono);text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px">Saldo final MP</div>' +
-        '<div style="font-size:18px;font-weight:500;font-family:var(--mono);color:var(--text)">' + fmtN(libData.saldoFinal||0) + '</div>' +
+        '<div style="font-size:10px;color:var(--text2);font-family:var(--mono);text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px">+ Paid online periodo</div>' +
+        '<div style="font-size:18px;font-weight:500;font-family:var(--mono);color:var(--green)">' + fmtN(sumPO) + '</div>' +
       '</div>' +
     '</div>' +
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">' +
@@ -1784,7 +1791,7 @@ function exportExcel(){
     var dataPO = allRows.filter(function(r){return r.concept==='paid_online';}).map(toOutputRow);
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(dataPO.length?dataPO:[{}]), 'Paid online');
 
-    // Hoja 3: Extracto — filtrado por fecha de liberacion en periodo, sin col fecha liberacion
+    // Hoja 3: Extracto — todos EXCEPTO Paid online, filtrado por fecha de liberacion en periodo
     function toExtractoRow(r){
       return {
         'FECHA DE APROBACION': r.fecha,
@@ -1802,23 +1809,33 @@ function exportExcel(){
       };
     }
     var dataExtracto = allRows.filter(function(r){
-      return enPeriodo(r.fechaLib||r.fecha);
+      return r.concept !== 'paid_online' && enPeriodo(r.fechaLib||r.fecha);
     }).map(toExtractoRow);
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(dataExtracto.length?dataExtracto:[{}]), 'Extracto');
 
     // Hoja 4: Calculo de saldos
     var saldoInicial = libData ? (libData.saldoInicial||0) : 0;
-    var sumExtracto = dataExtracto.reduce(function(s,r){ return s + (r['VALOR DE LA COMPRA']||0) + (r['COMISIONES + IVA']||0); }, 0);
+    // Extracto sum = todos menos paid online
+    var sumExtracto = dataExtracto.reduce(function(s,r){
+      return s + (parseFloat(r['VALOR DE LA COMPRA'])||0) + (parseFloat(r['COMISIONES + IVA'])||0);
+    }, 0);
     var saldoTeorico = saldoInicial + sumExtracto;
+    // Paid online sum (filtered by periodo)
+    var sumPaidOnline = allRows.filter(function(r){
+      return r.concept === 'paid_online' && enPeriodo(r.fechaLib||r.fecha);
+    }).reduce(function(s,r){ return s + r.monto + r.comis; }, 0);
+    var saldoTeoricoCorregido = saldoTeorico + sumPaidOnline;
     var saldoFinalMP = libData ? libData.saldoFinal : '';
-    var diff = saldoFinalMP !== '' ? saldoTeorico - saldoFinalMP : '';
+    var diff = saldoFinalMP !== '' ? saldoTeoricoCorregido - saldoFinalMP : '';
     var calcRows = [
-      {'Concepto':'Saldo Inicial Odoo', 'Importe': saldoInicial},
-      {'Concepto':'Movimiento "Extractos"', 'Importe': sumExtracto},
-      {'Concepto':'Saldo final teorico', 'Importe': saldoTeorico},
+      {'Concepto':'Saldo Inicial Odoo',           'Importe': saldoInicial},
+      {'Concepto':'Movimiento "Extractos"',        'Importe': sumExtracto},
+      {'Concepto':'Saldo final teorico',           'Importe': saldoTeorico},
+      {'Concepto':'Paid online',                   'Importe': sumPaidOnline},
+      {'Concepto':'Saldo final teorico corregido', 'Importe': saldoTeoricoCorregido},
       {},
       {'Concepto':'Saldo final MP (liberaciones)', 'Importe': saldoFinalMP},
-      {'Concepto':'Diferencia', 'Importe': diff},
+      {'Concepto':'Diferencia',                    'Importe': diff},
     ];
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(calcRows), 'Calculo de saldos');
 
