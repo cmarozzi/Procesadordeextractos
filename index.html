@@ -1660,11 +1660,11 @@ function calcularConciliacion() {
       '</div>' +
       '<div style="background:var(--bg2);border-radius:8px;padding:12px 14px">' +
         '<div style="font-size:10px;color:var(--text2);font-family:var(--mono);text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px">+ Movimientos periodo</div>' +
-        '<div style="font-size:18px;font-weight:500;font-family:var(--mono)">' + fmtN(totImp+totCom+totImp2) + '</div>' +
+        '<div style="font-size:18px;font-weight:500;font-family:var(--mono)">' + fmtN(sumExtracto) + '</div>' +
       '</div>' +
       '<div style="background:var(--bg2);border-radius:8px;padding:12px 14px">' +
-        '<div style="font-size:10px;color:var(--text2);font-family:var(--mono);text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px">- Paid online no liberado</div>' +
-        '<div style="font-size:18px;font-weight:500;font-family:var(--mono);color:var(--red)">' + fmtN(noLib) + '</div>' +
+        '<div style="font-size:10px;color:var(--text2);font-family:var(--mono);text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px">Saldo final MP</div>' +
+        '<div style="font-size:18px;font-weight:500;font-family:var(--mono);color:var(--text)">' + fmtN(libData.saldoFinal||0) + '</div>' +
       '</div>' +
     '</div>' +
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">' +
