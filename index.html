@@ -149,6 +149,312 @@ table.data tr:hover td{background:var(--bg2);}
 
 .screen{display:none;}.screen.active{display:block;}
 
+/* ── dLOCAL STYLES ──────────────────────────────────────────────── */
+.dlocal-screen{display:none}
+.dlocal-screen.active{display:block}
+
+.dlocal-screen .container {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 32px 24px 64px;
+  }
+.dlocal-screen header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 32px;
+  }
+.dlocal-screen .logo {
+    width: 48px; height: 48px;
+    border-radius: 12px;
+    background: var(--primary);
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-weight: 700; font-size: 26px;
+  }
+  h1 { font-size: 22px; font-weight: 600; }
+  .subtitle { color: var(--text-muted); font-size: 13px; margin-top: 2px; }
+
+.dlocal-screen .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+  .card h2 { font-size: 15px; font-weight: 600; margin-bottom: 4px; letter-spacing: -0.01em; }
+  .card p.hint { font-size: 13px; color: var(--text-muted); margin-bottom: 16px; }
+
+.dlocal-screen .uploads {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  @media (max-width: 640px) { .uploads { grid-template-columns: 1fr; } }
+
+.dlocal-screen .drop {
+    border: 2px dashed var(--border);
+    border-radius: 10px;
+    padding: 20px 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: all .15s ease;
+    background: #FCFCFC;
+    position: relative;
+  }
+  .drop:hover { border-color: var(--primary); background: var(--primary-light); }
+  .drop.dragover { border-color: var(--primary); background: var(--primary-light); border-style: solid; }
+  .drop.loaded { border-color: var(--success); border-style: solid; background: #F0FDF4; }
+  .drop.error { border-color: var(--error); border-style: solid; background: #FEF2F2; }
+  .drop input[type=file] { display: none; }
+  .drop .label { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+  .drop .status { font-size: 12px; color: var(--text-muted); }
+  .drop.loaded .status { color: var(--success); font-weight: 500; }
+  .drop.error .status { color: var(--error); font-weight: 500; }
+  .drop .filename { font-size: 11px; margin-top: 4px; color: var(--text-muted); word-break: break-all; }
+
+  /* Tooltip */
+.dlocal-screen .tip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: #E5E7EB;
+    color: var(--text-muted);
+    font-size: 10px;
+    font-weight: 700;
+    margin-left: 6px;
+    cursor: help;
+    position: relative;
+    vertical-align: middle;
+  }
+  .tip:hover { background: var(--primary); color: white; }
+.dlocal-screen .tip .tip-text {
+    visibility: hidden;
+    opacity: 0;
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1F2937;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 1.4;
+    white-space: normal;
+    width: 240px;
+    text-align: left;
+    z-index: 20;
+    box-shadow: 0 4px 12px rgba(0,0,0,.15);
+    transition: opacity .15s ease;
+    pointer-events: none;
+  }
+.dlocal-screen .tip .tip-text::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border: 5px solid transparent;
+    border-top-color: #1F2937;
+  }
+  .tip:hover .tip-text { visibility: visible; opacity: 1; }
+
+  /* Saldos iniciales */
+.dlocal-screen .saldos {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px dashed var(--border);
+  }
+  @media (max-width: 640px) { .saldos { grid-template-columns: 1fr; } }
+.dlocal-screen .saldo-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+.dlocal-screen .saldo-field label {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+.dlocal-screen .saldo-input-wrap {
+    display: flex;
+    align-items: stretch;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    background: white;
+  }
+  .saldo-input-wrap:focus-within { outline: 2px solid var(--primary); outline-offset: -1px; border-color: var(--primary); }
+.dlocal-screen .saldo-input-wrap .prefix {
+    display: flex; align-items: center;
+    padding: 0 10px;
+    background: #F9FAFB;
+    border-right: 1px solid var(--border);
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 600;
+  }
+.dlocal-screen .saldo-input-wrap input {
+    flex: 1;
+    padding: 8px 12px;
+    border: none;
+    font-size: 13px;
+    font-family: inherit;
+    outline: none;
+    background: transparent;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+  }
+
+.dlocal-screen .actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-top: 8px;
+  }
+.dlocal-screen .btn {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .15s ease;
+    font-family: inherit;
+  }
+  .btn:hover:not(:disabled) { background: var(--primary-dark); }
+  .btn:disabled { background: #D1D5DB; cursor: not-allowed; }
+.dlocal-screen .btn.secondary {
+    background: white;
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+  .btn.secondary:hover:not(:disabled) { background: #F3F4F6; }
+
+.dlocal-screen .field {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+.dlocal-screen .field input {
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 13px;
+    font-family: inherit;
+    width: 110px;
+  }
+  .field input:focus { outline: 2px solid var(--primary); outline-offset: -1px; border-color: var(--primary); }
+
+  .preview { display: none; }
+  .preview.visible { display: block; }
+.dlocal-screen .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+.dlocal-screen .stat {
+    background: #F9FAFB;
+    padding: 14px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+  }
+  .stat .value { font-size: 22px; font-weight: 600; color: var(--text); }
+  .stat .label { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+.dlocal-screen table {
+    width: 100%;
+    font-size: 12px;
+    border-collapse: collapse;
+    margin-top: 8px;
+  }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+  th { background: #F9FAFB; font-weight: 600; color: var(--text-muted); font-size: 11px; text-transform: uppercase; letter-spacing: .03em; }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; }
+.dlocal-screen .tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+.dlocal-screen .tab {
+    padding: 8px 14px;
+    font-size: 13px;
+    color: var(--text-muted);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    font-weight: 500;
+    margin-bottom: -1px;
+  }
+  .tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+  .table-wrapper { max-height: 320px; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; }
+
+.dlocal-screen .commissions {
+    background: var(--primary-light);
+    padding: 14px 16px;
+    border-radius: 10px;
+    margin-top: 16px;
+    font-size: 13px;
+  }
+  .commissions strong { display: block; margin-bottom: 6px; color: var(--primary-dark); }
+  .commissions ul { list-style: none; margin: 0; padding: 0; }
+  .commissions li { display: flex; justify-content: space-between; padding: 3px 0; font-variant-numeric: tabular-nums; }
+
+.dlocal-screen .notice {
+    background: #FFFBEB;
+    border-left: 3px solid var(--warning);
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-size: 12px;
+    color: #92400E;
+    margin-top: 12px;
+  }
+.dlocal-screen .error-msg {
+    background: #FEF2F2;
+    border-left: 3px solid var(--error);
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    color: var(--error);
+    margin-top: 12px;
+    display: none;
+  }
+  .error-msg.visible { display: block; }
+
+.dlocal-screen footer {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 12px;
+    margin-top: 32px;
+  }
+  footer a { color: var(--primary); text-decoration: none; }
+
+.dlocal-screen .spinner {
+    display: inline-block;
+    width: 14px; height: 14px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    vertical-align: middle;
+    margin-right: 8px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+
+
 /* ── dLOCAL ─────────────────────────────────────────────────────────── */
 .dlocal-screen { display:none; }
 .dlocal-screen.active { display:block; }
@@ -486,11 +792,11 @@ table.data tr:hover td{background:var(--bg2);}
 
 <!-- ── dLOCAL SCREEN ──────────────────────────────────────────── -->
 <div class="dlocal-screen" id="screen-dlocal">
-  <div style="padding:1rem 0 0.5rem">
-    <button class="btn-secondary" onclick="closeDlocal()" style="display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:var(--bg);border:0.5px solid var(--border2);border-radius:8px;font-size:13px;cursor:pointer;font-family:var(--font);">← Volver al menú</button>
+  <div style="padding:1rem 0 0.5rem;max-width:960px;margin:0 auto;padding-left:24px">
+    <button onclick="closeDlocal()" style="display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:white;border:0.5px solid rgba(0,0,0,.13);border-radius:8px;font-size:13px;cursor:pointer;font-family:Barlow,sans-serif;color:#3B3B3B;">← Volver al menú</button>
   </div>
   <div class="container">
-    
+    <div class="container">
   <header>
     <div class="logo">F</div>
     <div>
@@ -507,7 +813,7 @@ table.data tr:hover td{background:var(--bg2);}
         <input type="file" accept=".csv" data-key="dlocal">
         <div class="label">
           DLOCAL FUDO (CSV)
-          <span class="tip" onclick="event.preventDefault()">?<span class="tip-text">Reporte <b>"cleared transactions"</b> descargable desde la página de dlocal Fudo.</span></span>
+          <span class="tip" title='Reporte "cleared transactions" descargable desde la página de dlocal Fudo.' onclick="event.preventDefault()">?<span class="tip-text">Reporte <b>"cleared transactions"</b> descargable desde la página de dlocal Fudo.</span></span>
         </div>
         <div class="status">Sin cargar</div>
         <div class="filename"></div>
@@ -516,7 +822,7 @@ table.data tr:hover td{background:var(--bg2);}
         <input type="file" accept=".csv" data-key="brl">
         <div class="label">
           DLOCAL BRASIL (CSV)
-          <span class="tip" onclick="event.preventDefault()">?<span class="tip-text">Reporte <b>"cleared transactions"</b> descargable desde la página de dlocal Deli Brasil.</span></span>
+          <span class="tip" title='Reporte "cleared transactions" descargable desde la página de dlocal Deli Brasil.' onclick="event.preventDefault()">?<span class="tip-text">Reporte <b>"cleared transactions"</b> descargable desde la página de dlocal Deli Brasil.</span></span>
         </div>
         <div class="status">Sin cargar</div>
         <div class="filename"></div>
@@ -525,7 +831,7 @@ table.data tr:hover td{background:var(--bg2);}
         <input type="file" accept=".xlsx,.xls" data-key="plantilla">
         <div class="label">
           Plantilla Odoo (XLSX)
-          <span class="tip" onclick="event.preventDefault()">?<span class="tip-text">Base de clientes descargada de Odoo.</span></span>
+          <span class="tip" title="Base de clientes descargada de Odoo." onclick="event.preventDefault()">?<span class="tip-text">Base de clientes descargada de Odoo.</span></span>
         </div>
         <div class="status">Sin cargar</div>
         <div class="filename"></div>
@@ -534,7 +840,7 @@ table.data tr:hover td{background:var(--bg2);}
         <input type="file" accept=".csv" data-key="accountss">
         <div class="label">
           Accountss DASH (CSV)
-          <span class="tip" onclick="event.preventDefault()">?<span class="tip-text">Base de clientes descargada de DASH.</span></span>
+          <span class="tip" title="Base de clientes descargada de DASH." onclick="event.preventDefault()">?<span class="tip-text">Base de clientes descargada de DASH.</span></span>
         </div>
         <div class="status">Sin cargar</div>
         <div class="filename"></div>
@@ -545,7 +851,7 @@ table.data tr:hover td{background:var(--bg2);}
       <div class="saldo-field">
         <label for="saldo-dlocal">
           Saldo inicial DLOCAL FUDO
-          <span class="tip" style="margin-left:4px;">?<span class="tip-text">Saldo inicial de la cuenta DLOCAL FUDO al comienzo del período. Se agrega al final de la solapa DLOCAL en el archivo generado.</span></span>
+          <span class="tip" title="Saldo inicial de la cuenta DLOCAL FUDO al comienzo del período. Se agrega al final de la solapa DLOCAL en el archivo generado." style="margin-left:4px;">?<span class="tip-text">Saldo inicial de la cuenta DLOCAL FUDO al comienzo del período. Se agrega al final de la solapa DLOCAL en el archivo generado.</span></span>
         </label>
         <div class="saldo-input-wrap">
           <span class="prefix">USD</span>
@@ -555,7 +861,7 @@ table.data tr:hover td{background:var(--bg2);}
       <div class="saldo-field">
         <label for="saldo-brl">
           Saldo inicial DLOCAL BRASIL
-          <span class="tip" style="margin-left:4px;">?<span class="tip-text">Saldo inicial de la cuenta DLOCAL Deli Brasil al comienzo del período. Se agrega al final de la solapa DLOCAL BRL en el archivo generado.</span></span>
+          <span class="tip" title="Saldo inicial de la cuenta DLOCAL Deli Brasil al comienzo del período. Se agrega al final de la solapa DLOCAL BRL en el archivo generado." style="margin-left:4px;">?<span class="tip-text">Saldo inicial de la cuenta DLOCAL Deli Brasil al comienzo del período. Se agrega al final de la solapa DLOCAL BRL en el archivo generado.</span></span>
         </label>
         <div class="saldo-input-wrap">
           <span class="prefix">BRL</span>
@@ -565,22 +871,14 @@ table.data tr:hover td{background:var(--bg2);}
     </div>
 
     <div class="error-msg" id="error-msg"></div>
-  </div>
 
-  <div class="card">
-    <h2>2 · Procesá</h2>
-    <p class="hint">El mes de operatoria se calcula automáticamente de la fecha más reciente, o podés forzarlo.</p>
-    <div class="actions">
-      <div class="field">
-        <label for="mes-input">Mes (opcional):</label>
-        <input type="text" id="mes-input" placeholder="MM-AAAA" maxlength="7">
-      </div>
+    <div class="actions" style="justify-content: flex-end; margin-top: 20px;">
       <button class="btn" id="btn-procesar" disabled>Procesar archivos</button>
     </div>
   </div>
 
   <div class="card preview" id="preview">
-    <h2>3 · Revisá y descargá</h2>
+    <h2>2 · Revisá y descargá</h2>
     <p class="hint">Verificá totales y comisiones antes de bajar el archivo final.</p>
 
     <div class="summary-grid" id="summary-grid"></div>
@@ -614,7 +912,7 @@ table.data tr:hover td{background:var(--bg2);}
         <button class="btn secondary" id="btn-descargar">Descargar XLSX (revisión)</button>
         <button class="btn" id="btn-descargar-csv">
           Descargar CSVs para Odoo
-          <span class="tip" style="margin-left: 4px; background: rgba(255,255,255,.25); color: white;">?<span class="tip-text">Baja 2 archivos CSV (uno por cada cuenta) en formato listo para importar en Odoo. Si el navegador te pregunta si permitir descargas múltiples, aceptalo.</span></span>
+          <span class="tip" title="Baja 2 archivos CSV (uno por cada cuenta) en formato listo para importar en Odoo. Si el navegador te pregunta si permitir descargas múltiples, aceptalo." style="margin-left: 4px; background: rgba(255,255,255,.25); color: white;">?<span class="tip-text">Baja 2 archivos CSV (uno por cada cuenta) en formato listo para importar en Odoo. Si el navegador te pregunta si permitir descargas múltiples, aceptalo.</span></span>
         </button>
       </div>
     </div>
@@ -623,10 +921,9 @@ table.data tr:hover td{background:var(--bg2);}
   <footer>
     <p>Hecho para Fudo · Procesado 100% en tu navegador · <a href="#" id="reset-link">Empezar de nuevo</a></p>
   </footer>
-
+</div>
   </div>
 </div>
-
 </div>
 
 <script>
@@ -1262,7 +1559,7 @@ function exportExcel(){
   }
 }
 
-// ── dLOCAL JS ─────────────────────────────────────────────────────
+// ── dLOCAL JS ────────────────────────────────────────────────────
 
 // ========================================================================= //
 // Utilidades de parseo                                                       //
@@ -1872,7 +2169,9 @@ document.getElementById('btn-procesar').addEventListener('click', async () => {
   btn.innerHTML = '<span class="spinner"></span>Procesando…';
   hideError();
   try {
-    const mesLabel = document.getElementById('mes-input').value.trim();
+    // Mes se autodetecta de las fechas. Si en el futuro se agrega input, leerlo aquí.
+    const mesInput = document.getElementById('mes-input');
+    const mesLabel = mesInput ? mesInput.value.trim() : '';
     RESULT = await procesarTodo(FILES, mesLabel || null);
     renderPreview(RESULT);
     document.getElementById('preview').scrollIntoView({ behavior: 'smooth' });
@@ -1930,7 +2229,7 @@ document.getElementById('tabs').addEventListener('click', (e) => {
 
 document.getElementById('reset-link').addEventListener('click', (e) => {
   e.preventDefault();
-  location.reload();
+  closeDlocal();
 });
 
 </script>
