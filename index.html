@@ -800,7 +800,7 @@ table.data tr:hover td{background:var(--bg2);}
   <header>
     <div class="logo">F</div>
     <div>
-      <h1>Extractos DLOCAL</h1>
+      <h1>Extractos dLocal</h1>
       <div class="subtitle">Generador de extracto mensual para subir a Odoo · Fudo</div>
     </div>
   </header>
@@ -812,7 +812,7 @@ table.data tr:hover td{background:var(--bg2);}
       <label class="drop" id="drop-dlocal">
         <input type="file" accept=".csv" data-key="dlocal">
         <div class="label">
-          DLOCAL FUDO (CSV)
+          dLocal Fudo (CSV)
           <span class="tip" title='Reporte "cleared transactions" descargable desde la página de dlocal Fudo.' onclick="event.preventDefault()">?<span class="tip-text">Reporte <b>"cleared transactions"</b> descargable desde la página de dlocal Fudo.</span></span>
         </div>
         <div class="status">Sin cargar</div>
@@ -821,7 +821,7 @@ table.data tr:hover td{background:var(--bg2);}
       <label class="drop" id="drop-brl">
         <input type="file" accept=".csv" data-key="brl">
         <div class="label">
-          DLOCAL BRASIL (CSV)
+          dLocal Brasil (CSV)
           <span class="tip" title='Reporte "cleared transactions" descargable desde la página de dlocal Deli Brasil.' onclick="event.preventDefault()">?<span class="tip-text">Reporte <b>"cleared transactions"</b> descargable desde la página de dlocal Deli Brasil.</span></span>
         </div>
         <div class="status">Sin cargar</div>
@@ -839,8 +839,8 @@ table.data tr:hover td{background:var(--bg2);}
       <label class="drop" id="drop-accountss">
         <input type="file" accept=".csv" data-key="accountss">
         <div class="label">
-          Accountss DASH (CSV)
-          <span class="tip" title="Base de clientes descargada de DASH." onclick="event.preventDefault()">?<span class="tip-text">Base de clientes descargada de DASH.</span></span>
+          Accounts Dash (CSV)
+          <span class="tip" title="Base de clientes descargada de Dash." onclick="event.preventDefault()">?<span class="tip-text">Base de clientes descargada de Dash.</span></span>
         </div>
         <div class="status">Sin cargar</div>
         <div class="filename"></div>
@@ -850,8 +850,8 @@ table.data tr:hover td{background:var(--bg2);}
     <div class="saldos">
       <div class="saldo-field">
         <label for="saldo-dlocal">
-          Saldo inicial DLOCAL FUDO
-          <span class="tip" title="Saldo inicial de la cuenta DLOCAL FUDO al comienzo del período. Se agrega al final de la solapa DLOCAL en el archivo generado." style="margin-left:4px;">?<span class="tip-text">Saldo inicial de la cuenta DLOCAL FUDO al comienzo del período. Se agrega al final de la solapa DLOCAL en el archivo generado.</span></span>
+          Saldo inicial dLocal Fudo
+          <span class="tip" title="Saldo inicial de la cuenta dLocal Fudo al comienzo del período. Se agrega al final de la solapa dLocal en el archivo generado." style="margin-left:4px;">?<span class="tip-text">Saldo inicial de la cuenta dLocal Fudo al comienzo del período. Se agrega al final de la solapa dLocal en el archivo generado.</span></span>
         </label>
         <div class="saldo-input-wrap">
           <span class="prefix">USD</span>
@@ -860,8 +860,8 @@ table.data tr:hover td{background:var(--bg2);}
       </div>
       <div class="saldo-field">
         <label for="saldo-brl">
-          Saldo inicial DLOCAL BRASIL
-          <span class="tip" title="Saldo inicial de la cuenta DLOCAL Deli Brasil al comienzo del período. Se agrega al final de la solapa DLOCAL BRL en el archivo generado." style="margin-left:4px;">?<span class="tip-text">Saldo inicial de la cuenta DLOCAL Deli Brasil al comienzo del período. Se agrega al final de la solapa DLOCAL BRL en el archivo generado.</span></span>
+          Saldo inicial dLocal Brasil
+          <span class="tip" title="Saldo inicial de la cuenta dLocal Deli Brasil al comienzo del período. Se agrega al final de la solapa dLocal BRL en el archivo generado." style="margin-left:4px;">?<span class="tip-text">Saldo inicial de la cuenta dLocal Deli Brasil al comienzo del período. Se agrega al final de la solapa dLocal BRL en el archivo generado.</span></span>
         </label>
         <div class="saldo-input-wrap">
           <span class="prefix">BRL</span>
@@ -886,8 +886,8 @@ table.data tr:hover td{background:var(--bg2);}
     <div class="commissions" id="commissions"></div>
 
     <div class="tabs" id="tabs">
-      <div class="tab active" data-sheet="dlocal">DLOCAL (<span id="count-dlocal">0</span>)</div>
-      <div class="tab" data-sheet="brl">DLOCAL BRL (<span id="count-brl">0</span>)</div>
+      <div class="tab active" data-sheet="dlocal">dLocal (<span id="count-dlocal">0</span>)</div>
+      <div class="tab" data-sheet="brl">dLocal BRL (<span id="count-brl">0</span>)</div>
     </div>
     <div class="table-wrapper">
       <table id="preview-table">
@@ -1486,7 +1486,7 @@ function exportExcel(){
     // ── RESUMEN TU DELIVERY ──────────────────────────────────
     const data = tdRows.map(r=>({
       'TIPO DE DEUDA': (r.concept==='suscripcion'||r.concept==='deuda_comisiones')?'PAID_OFFLINE':'PAID_ONLINE',
-      'ID DE DASH': r.dashId||'',
+      'ID DE Dash': r.dashId||'',
       'FECHA DE PAGO': r.fecha,
       'OP MP': r.idOpMP,
       'MEDIO DE PAGO': r.medio,
@@ -1648,7 +1648,7 @@ async function parseCsv(file, forcedDelimiter) {
 }
 
 async function parsePlantilla(file) {
-  // Devuelve dict {referenciaDASH -> idOdoo}
+  // Devuelve dict {referenciaDash -> idOdoo}
   const buffer = await readFileAsArrayBuffer(file);
   const wb = new ExcelJS.Workbook();
   await wb.xlsx.load(buffer);
@@ -1674,7 +1674,7 @@ async function parsePlantilla(file) {
   return mapping;
 }
 
-async function parseAccountss(file) {
+async function parseAccounts(file) {
   const rows = await parseCsv(file, ';');
   const mapping = {};
   for (const r of rows) {
@@ -1875,10 +1875,10 @@ function escribirSolapa(wb, nombre, movs, saldoInicial) {
 
 async function generarXlsx(nombreArchivo, movsDlocal, movsBrl, saldoDlocal, saldoBrl) {
   const wb = new ExcelJS.Workbook();
-  wb.creator = 'Fudo · Extractos DLOCAL';
+  wb.creator = 'Fudo · Extractos dLocal';
   wb.created = new Date();
-  escribirSolapa(wb, 'DLOCAL', movsDlocal, saldoDlocal);
-  escribirSolapa(wb, 'DLOCAL BRL', movsBrl, saldoBrl);
+  escribirSolapa(wb, 'dLocal', movsDlocal, saldoDlocal);
+  escribirSolapa(wb, 'dLocal BRL', movsBrl, saldoBrl);
   const buf = await wb.xlsx.writeBuffer();
   saveAs(new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), nombreArchivo);
 }
@@ -1992,7 +1992,7 @@ async function procesarTodo(files, mesLabelManual) {
     parseCsv(files.dlocal),   // auto-detecta delimiter
     parseCsv(files.brl),      // auto-detecta delimiter
     parsePlantilla(files.plantilla),
-    parseAccountss(files.accountss),
+    parseAccounts(files.accountss),
   ]);
 
   const rawDlocal = rawDlocalAll.filter(r => (r['Local currency'] || '').trim() !== 'BRL');
@@ -2112,11 +2112,11 @@ function renderPreview(result) {
   document.getElementById('nd-count').textContent = ndCount;
 
   document.getElementById('summary-grid').innerHTML = `
-    <div class="stat"><div class="value">${totalDlocal}</div><div class="label">Filas DLOCAL</div></div>
-    <div class="stat"><div class="value">${totalBrl}</div><div class="label">Filas DLOCAL BRL</div></div>
+    <div class="stat"><div class="value">${totalDlocal}</div><div class="label">Filas dLocal</div></div>
+    <div class="stat"><div class="value">${totalBrl}</div><div class="label">Filas dLocal BRL</div></div>
     <div class="stat"><div class="value">${result.mesLabel}</div><div class="label">Mes operatoria</div></div>
-    <div class="stat"><div class="value">USD ${fmtNum(sumImporte(result.movsDlocal))}</div><div class="label">Total DLOCAL (importe)</div></div>
-    <div class="stat"><div class="value">BRL ${fmtNum(sumImporte(result.movsBrl))}</div><div class="label">Total DLOCAL BRL (importe)</div></div>
+    <div class="stat"><div class="value">USD ${fmtNum(sumImporte(result.movsDlocal))}</div><div class="label">Total dLocal (importe)</div></div>
+    <div class="stat"><div class="value">BRL ${fmtNum(sumImporte(result.movsBrl))}</div><div class="label">Total dLocal BRL (importe)</div></div>
   `;
 
   const comMovs = result.movsDlocal.concat(result.movsBrl)
