@@ -757,6 +757,60 @@ table.data tr:hover td{background:var(--bg2);}
             <div class="dz-hint">CSV o XLSX</div>
           </div>
         </div>
+        <div id="lib-section" style="display:none;margin-top:1rem">
+          <div class="divider"></div>
+
+          <!-- Periodo + Saldo inicial -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1rem">
+            <div>
+              <div class="upload-label" style="margin-bottom:6px">
+                Período a importar <span class="req">requerido</span>
+                <span class="tooltip-wrap">
+                  <span class="tooltip-icon">?</span>
+                  <span class="tooltip-box">Mes que estás facturando. Los paid online se filtran por fecha de aprobación dentro de este rango.</span>
+                </span>
+              </div>
+              <div style="display:flex;gap:6px">
+                <input type="date" id="periodo-desde" style="flex:1;padding:8px;border:0.5px solid var(--border2);border-radius:8px;font-family:var(--mono);font-size:12px;background:var(--bg2)">
+                <input type="date" id="periodo-hasta" style="flex:1;padding:8px;border:0.5px solid var(--border2);border-radius:8px;font-family:var(--mono);font-size:12px;background:var(--bg2)">
+              </div>
+            </div>
+            <div>
+              <div class="upload-label" style="margin-bottom:6px">
+                Saldo inicial Odoo <span class="req">requerido</span>
+                <span class="tooltip-wrap">
+                  <span class="tooltip-icon">?</span>
+                  <span class="tooltip-box">Saldo de la cuenta MP en Odoo al inicio del período.</span>
+                </span>
+              </div>
+              <input type="number" id="saldo-inicial" step="0.01" placeholder="0.00"
+                style="width:100%;padding:8px;border:0.5px solid var(--border2);border-radius:8px;font-family:var(--mono);font-size:12px;background:var(--bg2)">
+            </div>
+          </div>
+
+          <!-- Liberaciones: archivo o manual -->
+          <div class="upload-label" style="margin-bottom:6px">
+            Reporte de Liberaciones de Mercado Pago
+            <span class="tooltip-wrap">
+              <span class="tooltip-icon">?</span>
+              <span class="tooltip-box">Reporte "reserve-release" descargable desde el portal de Mercado Pago. Si no tenés el archivo podés ingresar el saldo final manualmente.</span>
+            </span>
+          </div>
+          <div class="dz" id="dz-lib" ondragover="onDrag(event,'dz-lib')" ondragleave="offDrag('dz-lib')" ondrop="onDropLib(event)">
+            <input type="file" accept=".xlsx,.xls" onchange="loadLib(event)">
+            <div class="dz-icon">📊</div>
+            <div>
+              <div class="dz-name" id="lib-name">reserve-release-XXXXX.xlsx</div>
+              <div class="dz-hint">XLSX — o ingresá el saldo manualmente abajo</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;margin-top:8px">
+            <span style="font-size:11px;color:var(--text3);font-family:var(--mono)">o ingresá el saldo final MP manualmente:</span>
+            <input type="number" id="saldo-final-manual" step="0.01" placeholder="0.00"
+              style="width:140px;padding:6px 8px;border:0.5px solid var(--border2);border-radius:8px;font-family:var(--mono);font-size:12px;background:var(--bg2)"
+              oninput="onSaldoManualChange()">
+          </div>
+        </div>
       </div>
 
       <div class="progress-wrap" id="progress-wrap" style="display:none">
@@ -953,7 +1007,7 @@ async function saveRule(patron, campo, concepto, pais, notas) {
 
 // ── STATE ─────────────────────────────────────────────────────
 let selectedOutput = null;
-let extractos = [], accFile = null;
+let extractos = [], accFile = null, libFile = null, libData = null;
 let tdRows = [], unclassRows = [], allRows = [];
 let accountsMap = {};
 let fx = {ARS:null, CLP:null, MXN:null};
@@ -1045,6 +1099,8 @@ function goStep(n) {
     document.getElementById('step2-title').textContent = selectedOutput==='td'
       ? 'Archivos · Resumen Tu Delivery'
       : 'Archivos · Extracto de Mercado Pago';
+    var ls=document.getElementById('lib-section'); if(ls) ls.style.display=selectedOutput==='extracto'?'block':'none';
+    setTimeout(function(){ var pf=document.getElementById('periodo-desde'); if(pf){ pf.addEventListener('input',checkReady); document.getElementById('periodo-hasta').addEventListener('input',checkReady); document.getElementById('saldo-inicial').addEventListener('input',checkReady); } }, 100);
     checkReady();
   }
   setStep(n);
@@ -1104,9 +1160,40 @@ function loadAccFile(f) {
   document.getElementById('acc-name').textContent=f.name;
   checkReady();
 }
+function onDropLib(e){ e.preventDefault(); offDrag('dz-lib'); loadLibFile(e.dataTransfer.files[0]); }
+function loadLib(e){ loadLibFile(e.target.files[0]); }
+function loadLibFile(f) {
+  if(!f) return; libFile=f;
+  document.getElementById('dz-lib').classList.add('loaded');
+  document.getElementById('lib-name').textContent=f.name;
+}
+function onSaldoManualChange() {
+  // If manual saldo entered, mark lib as satisfied
+  const manual = parseFloat(document.getElementById('saldo-final-manual').value) || 0;
+  if(manual > 0) {
+    document.getElementById('dz-lib').style.opacity = '0.5';
+  } else {
+    document.getElementById('dz-lib').style.opacity = '1';
+  }
+  checkReady();
+}
+
 function checkReady() {
-  const ok = extractos.length>0 && !!accFile;
-  document.getElementById('btn-process').disabled=!ok;
+  var hasExtractos = extractos.length > 0;
+  var hasAcc = !!accFile;
+  var libOk = true;
+  if(selectedOutput === 'extracto') {
+    var hasPeriodo = !!(document.getElementById('periodo-desde') &&
+                       document.getElementById('periodo-desde').value &&
+                       document.getElementById('periodo-hasta').value);
+    var hasSaldoInicial = !!(document.getElementById('saldo-inicial') &&
+                             document.getElementById('saldo-inicial').value);
+    var hasLib = !!libFile;
+    var hasManual = !!(document.getElementById('saldo-final-manual') &&
+                       parseFloat(document.getElementById('saldo-final-manual').value) > 0);
+    libOk = hasPeriodo && hasSaldoInicial && (hasLib || hasManual);
+  }
+  document.getElementById('btn-process').disabled = !(hasExtractos && hasAcc && libOk);
 }
 
 // ── FILE READING ──────────────────────────────────────────────
@@ -1302,10 +1389,37 @@ async function process() {
   await loadCustomRules();
   setProgress(15,'Cargando accounts...');
   try {
-    accountsMap={};
+    accountsMap={}; libData=null;
     if(accFile){
       const rows = await readFileAsRows(accFile);
       accountsMap = buildAccountsMap(rows);
+    }
+    if(selectedOutput==='extracto'){
+      // Get periodo and saldo inicial
+      var periodoDesde = document.getElementById('periodo-desde').value;
+      var periodoHasta = document.getElementById('periodo-hasta').value;
+      var saldoInicialVal = parseFloat(document.getElementById('saldo-inicial').value) || 0;
+
+      if(libFile){
+        try {
+          var libRows = await readFileAsRows(libFile);
+          var totalRow = libRows.find(function(r){ return String(r['RECORD_TYPE']||'').toLowerCase()==='total'; });
+          var totalIdx = libRows.indexOf(totalRow);
+          if(totalRow && totalIdx > 0){
+            var prevRow = libRows[totalIdx-1];
+            var sf = parseFloat(String(totalRow['NET_CREDIT_AMOUNT']||'0').replace(',','.')) || 0;
+            var fd = String(prevRow['RELEASE_DATE']||'').split('T')[0];
+            var fp = fd.split('-'); var ffmt = fp.length===3 ? fp[2]+'/'+fp[1]+'/'+fp[0] : fd;
+            libData = {saldoFinal: sf, fecha: ffmt, periodoDesde: periodoDesde, periodoHasta: periodoHasta, saldoInicial: saldoInicialVal};
+          }
+        } catch(e){ console.warn('Error liberaciones:', e); }
+      } else {
+        // Use manual saldo
+        var manual = parseFloat(document.getElementById('saldo-final-manual').value) || 0;
+        if(manual > 0) {
+          libData = {saldoFinal: manual, fecha: periodoHasta.split('-').reverse().join('/'), periodoDesde: periodoDesde, periodoHasta: periodoHasta, saldoInicial: saldoInicialVal};
+        }
+      }
     }
     setProgress(20,'Leyendo extractos...');
     tdRows=[]; unclassRows=[]; allRows=[];
@@ -1353,6 +1467,36 @@ function renderResults() {
   }
   document.getElementById('result-content').innerHTML=html;
   renderUnclassified();
+  if(selectedOutput==='extracto' && libData){
+    var cc = document.getElementById('conciliacion-card');
+    if(cc) cc.remove();
+    var card = document.createElement('div');
+    card.id='conciliacion-card'; card.className='card'; card.style.marginTop='1rem';
+    card.innerHTML =
+      '<div class="card-title">Conciliacion de saldos</div>' +
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:1rem">' +
+        '<div>' +
+          '<div class="upload-label" style="margin-bottom:6px">Periodo a importar</div>' +
+          '<div style="display:flex;gap:8px">' +
+            '<input type="date" id="periodo-desde" style="flex:1;padding:8px;border:0.5px solid var(--border2);border-radius:8px;font-family:var(--mono);font-size:12px;background:var(--bg2)">' +
+            '<input type="date" id="periodo-hasta" style="flex:1;padding:8px;border:0.5px solid var(--border2);border-radius:8px;font-family:var(--mono);font-size:12px;background:var(--bg2)">' +
+          '</div>' +
+        '</div>' +
+        '<div>' +
+          '<div class="upload-label" style="margin-bottom:6px">Saldo inicial Odoo</div>' +
+          '<input type="number" id="saldo-inicial" step="0.01" placeholder="0.00" style="width:100%;padding:8px;border:0.5px solid var(--border2);border-radius:8px;font-family:var(--mono);font-size:12px;background:var(--bg2)">' +
+        '</div>' +
+      '</div>' +
+      '<div style="margin-bottom:1rem;padding:10px 14px;background:var(--bg2);border-radius:8px;font-family:var(--mono);font-size:12px;color:var(--text2)">' +
+        'Saldo final MP: <strong style="color:var(--text)">' + fmtN(libData.saldoFinal) + '</strong>' +
+        '<span style="margin-left:12px">Fecha: <strong style="color:var(--text)">' + libData.fecha + '</strong></span>' +
+      '</div>' +
+      '<button class="btn-primary" style="max-width:200px" onclick="calcularConciliacion()">Calcular</button>' +
+      '<div id="conciliacion-resultado" style="margin-top:1rem"></div>';
+    var uc = document.getElementById('unclass-card');
+    if(uc) uc.parentNode.insertBefore(card, uc);
+    else document.getElementById('result-content').appendChild(card);
+  }
 }
 
 function renderResumenTD(){
@@ -1475,6 +1619,70 @@ async function assignUnclass(i){
   document.getElementById('ui-'+i).classList.add('resolved');
   document.getElementById('ui-'+i).querySelector('.unclass-assign').innerHTML=
     `<span class="unclass-saved">✓ Guardado como ${CONCEPT_LABELS[sel]||sel}</span>`;
+}
+
+function calcularConciliacion() {
+  var desde = libData.periodoDesde;
+  var hasta  = libData.periodoHasta;
+  var si     = libData.saldoInicial || 0;
+  if(!desde || !hasta){ alert('Completa el periodo'); return; }
+  var desdeD = new Date(desde);
+  var hastaD = new Date(hasta); hastaD.setHours(23,59,59);
+
+  function parseFecha(f){
+    var p=f.split('/'); return p.length===3 ? new Date(p[2]+'-'+p[1]+'-'+p[0]) : new Date(f);
+  }
+
+  var enPeriodo = allRows.filter(function(r){
+    if(!r.fecha) return false;
+    var d=parseFecha(r.fecha); return d>=desdeD && d<=hastaD;
+  });
+
+  var totImp  = enPeriodo.reduce(function(s,r){ return s+r.monto; }, 0);
+  var totCom  = enPeriodo.reduce(function(s,r){ return s+r.comis; }, 0);
+  var totImp2 = enPeriodo.reduce(function(s,r){ return s+r.imp; }, 0);
+
+  var noLib = allRows.filter(function(r){
+    if(r.concept!=='paid_online' || !r.fecha || !r.fechaLib) return false;
+    var dAprov=parseFecha(r.fecha);
+    if(dAprov<desdeD || dAprov>hastaD) return false;
+    var dLib=parseFecha(r.fechaLib);
+    return dLib>hastaD;
+  }).reduce(function(s,r){ return s+r.monto; }, 0);
+
+  var teorico = si + totImp + totCom + totImp2 - noLib;
+  var diff    = teorico - libData.saldoFinal;
+  var ok      = Math.abs(diff) < 0.02;
+  var okC     = ok ? 'var(--green)' : 'var(--red)';
+  var okBg    = ok ? 'var(--green-bg)' : 'var(--red-bg)';
+  var okBd    = ok ? 'var(--green-bd)' : 'rgba(226,75,74,.25)';
+
+  document.getElementById('conciliacion-resultado').innerHTML =
+    '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1rem">' +
+      '<div style="background:var(--bg2);border-radius:8px;padding:12px 14px">' +
+        '<div style="font-size:10px;color:var(--text2);font-family:var(--mono);text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px">Saldo inicial Odoo</div>' +
+        '<div style="font-size:18px;font-weight:500;font-family:var(--mono)">' + fmtN(si) + '</div>' +
+      '</div>' +
+      '<div style="background:var(--bg2);border-radius:8px;padding:12px 14px">' +
+        '<div style="font-size:10px;color:var(--text2);font-family:var(--mono);text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px">+ Movimientos periodo</div>' +
+        '<div style="font-size:18px;font-weight:500;font-family:var(--mono)">' + fmtN(totImp+totCom+totImp2) + '</div>' +
+      '</div>' +
+      '<div style="background:var(--bg2);border-radius:8px;padding:12px 14px">' +
+        '<div style="font-size:10px;color:var(--text2);font-family:var(--mono);text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px">- Paid online no liberado</div>' +
+        '<div style="font-size:18px;font-weight:500;font-family:var(--mono);color:var(--red)">' + fmtN(noLib) + '</div>' +
+      '</div>' +
+    '</div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">' +
+      '<div style="padding:16px;border-radius:10px;background:var(--navy-bg);border:0.5px solid rgba(57,56,160,.2)">' +
+        '<div style="font-size:11px;font-family:var(--mono);color:var(--navy);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Saldo final teorico</div>' +
+        '<div style="font-size:24px;font-weight:600;font-family:var(--mono);color:var(--navy)">' + fmtN(teorico) + '</div>' +
+      '</div>' +
+      '<div style="padding:16px;border-radius:10px;background:'+okBg+';border:0.5px solid '+okBd+'">' +
+        '<div style="font-size:11px;font-family:var(--mono);color:'+okC+';text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">' + (ok?'✅ Conciliado':'⚠ Diferencia') + '</div>' +
+        '<div style="font-size:24px;font-weight:600;font-family:var(--mono);color:'+okC+'">' + (ok?fmtN(libData.saldoFinal):fmtN(Math.abs(diff))) + '</div>' +
+        (ok?'':'<div style="font-size:11px;font-family:var(--mono);margin-top:4px;color:var(--red)">Saldo MP: '+fmtN(libData.saldoFinal)+'</div>') +
+      '</div>' +
+    '</div>';
 }
 
 // ── EXPORT ────────────────────────────────────────────────────
