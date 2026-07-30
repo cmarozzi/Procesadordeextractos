@@ -1166,6 +1166,7 @@ function loadLibFile(f) {
   if(!f) return; libFile=f;
   document.getElementById('dz-lib').classList.add('loaded');
   document.getElementById('lib-name').textContent=f.name;
+  checkReady();
 }
 function onSaldoManualChange() {
   // If manual saldo entered, mark lib as satisfied
@@ -1189,8 +1190,9 @@ function checkReady() {
     var hasSaldoInicial = !!(document.getElementById('saldo-inicial') &&
                              document.getElementById('saldo-inicial').value);
     var hasLib = !!libFile;
-    var hasManual = !!(document.getElementById('saldo-final-manual') &&
-                       parseFloat(document.getElementById('saldo-final-manual').value) > 0);
+    var manualEl = document.getElementById('saldo-final-manual');
+    var hasManual = !!(manualEl && parseFloat(manualEl.value) > 0);
+    // lib is satisfied if file uploaded OR manual saldo entered
     libOk = hasPeriodo && hasSaldoInicial && (hasLib || hasManual);
   }
   document.getElementById('btn-process').disabled = !(hasExtractos && hasAcc && libOk);
@@ -1496,6 +1498,7 @@ function renderResults() {
     var uc = document.getElementById('unclass-card');
     if(uc) uc.parentNode.insertBefore(card, uc);
     else document.getElementById('result-content').appendChild(card);
+    calcularConciliacion();
   }
 }
 
@@ -1622,37 +1625,29 @@ async function assignUnclass(i){
 }
 
 function calcularConciliacion() {
+  if(!libData) return;
+  var si  = libData.saldoInicial || 0;
   var desde = libData.periodoDesde;
   var hasta  = libData.periodoHasta;
-  var si     = libData.saldoInicial || 0;
-  if(!desde || !hasta){ alert('Completa el periodo'); return; }
-  var desdeD = new Date(desde);
-  var hastaD = new Date(hasta); hastaD.setHours(23,59,59);
 
-  function parseFecha(f){
+  function parseFechaLocal(f){
     var p=f.split('/'); return p.length===3 ? new Date(p[2]+'-'+p[1]+'-'+p[0]) : new Date(f);
   }
+  var desdeD = desde ? new Date(desde) : null;
+  var hastaD = hasta ? new Date(hasta) : null;
+  if(hastaD) hastaD.setHours(23,59,59);
 
-  var enPeriodo = allRows.filter(function(r){
-    if(!r.fecha) return false;
-    var d=parseFecha(r.fecha); return d>=desdeD && d<=hastaD;
-  });
+  function enPer(fechaLib){
+    if(!desdeD||!hastaD||!fechaLib) return true;
+    var d=parseFechaLocal(fechaLib); return d>=desdeD && d<=hastaD;
+  }
 
-  var totImp  = enPeriodo.reduce(function(s,r){ return s+r.monto; }, 0);
-  var totCom  = enPeriodo.reduce(function(s,r){ return s+r.comis; }, 0);
-  var totImp2 = enPeriodo.reduce(function(s,r){ return s+r.imp; }, 0);
-
-  var noLib = allRows.filter(function(r){
-    if(r.concept!=='paid_online' || !r.fecha || !r.fechaLib) return false;
-    var dAprov=parseFecha(r.fecha);
-    if(dAprov<desdeD || dAprov>hastaD) return false;
-    var dLib=parseFecha(r.fechaLib);
-    return dLib>hastaD;
-  }).reduce(function(s,r){ return s+r.monto; }, 0);
-
-  var teorico = si + totImp + totCom + totImp2 - noLib;
-  var diff    = teorico - libData.saldoFinal;
-  var ok      = Math.abs(diff) < 0.02;
+  // Sum extracto rows (filtered by fechaLib in periodo)
+  var extractoRows = allRows.filter(function(r){ return enPer(r.fechaLib||r.fecha); });
+  var sumExtracto = extractoRows.reduce(function(s,r){ return s+r.monto+r.comis+r.imp; }, 0);
+  var teorico = si + sumExtracto;
+  var diff    = libData.saldoFinal ? teorico - libData.saldoFinal : null;
+  var ok      = diff !== null && Math.abs(diff) < 0.02;
   var okC     = ok ? 'var(--green)' : 'var(--red)';
   var okBg    = ok ? 'var(--green-bg)' : 'var(--red-bg)';
   var okBd    = ok ? 'var(--green-bd)' : 'rgba(226,75,74,.25)';
@@ -1687,85 +1682,165 @@ function calcularConciliacion() {
 
 // ── EXPORT ────────────────────────────────────────────────────
 function exportExcel(){
-  const wb = XLSX.utils.book_new();
-  const fecha = new Date().toISOString().split('T')[0];
+  var wb = XLSX.utils.book_new();
+  var fecha = new Date().toISOString().split('T')[0];
+  var isTD = selectedOutput==='td';
 
-  if(selectedOutput==='td'){
-    // ── RESUMEN TU DELIVERY ──────────────────────────────────
-    const data = tdRows.map(r=>({
+  if(isTD){
+    // ── RESUMEN TU DELIVERY ──
+    var dataTD = tdRows.map(function(r){ return {
       'TIPO DE DEUDA': (r.concept==='suscripcion'||r.concept==='deuda_comisiones')?'PAID_OFFLINE':'PAID_ONLINE',
-      'ID DE Dash': r.dashId||'',
+      'ID DE DASH': r.dashId||'',
       'FECHA DE PAGO': r.fecha,
       'OP MP': r.idOpMP,
       'MEDIO DE PAGO': r.medio,
       'ESTADO': r.tipoOp,
       'MONEDA': r.moneda,
       'IMPORTE LC C/IVA': r.monto,
-      'COMISIÓN C/IVA': r.comis,
+      'COMISION C/IVA': r.comis,
       'OTROS IMPUESTOS': r.imp,
-    }));
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(data.length?data:[{}]), 'Tu delivery');
+    };});
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(dataTD.length?dataTD:[{}]), 'Tu delivery');
 
-    // Resumen por país
-    const resRows=[];
-    const countries=[...new Set(tdRows.map(r=>r.country))];
-    countries.forEach(pais=>{
-      const pRows=tdRows.filter(r=>r.country===pais);
-      const ivaDiv=IVA[pais], fxRate=fx[CURRENCY[pais]], moneda=CURRENCY[pais];
-      const byTipo={};
-      pRows.forEach(r=>{
-        const tipo=(r.concept==='suscripcion'||r.concept==='deuda_comisiones')?'PAID_OFFLINE':'PAID_ONLINE';
+    // Resumen por pais
+    var resRows=[];
+    var countries=[...new Set(tdRows.map(function(r){return r.country;}))];
+    countries.forEach(function(pais){
+      var pRows=tdRows.filter(function(r){return r.country===pais;});
+      var ivaDiv=IVA[pais], fxRate=fx[CURRENCY[pais]], moneda=CURRENCY[pais];
+      var byTipo={};
+      pRows.forEach(function(r){
+        var tipo=(r.concept==='suscripcion'||r.concept==='deuda_comisiones')?'PAID_OFFLINE':'PAID_ONLINE';
         if(!byTipo[tipo])byTipo[tipo]={monto:0,comis:0,imp:0,count:0};
         byTipo[tipo].monto+=r.monto;byTipo[tipo].comis+=r.comis;byTipo[tipo].imp+=r.imp;byTipo[tipo].count++;
       });
-      Object.entries(byTipo).forEach(([tipo,d])=>{
-        const tot=d.monto+d.comis+d.imp, sin=tot/ivaDiv;
-        resRows.push({'PAÍS':pais,'MONEDA':moneda,'TIPO':tipo,'MOV':d.count,
-          'IMPORTE C/IVA':d.monto,'COMISIÓN':d.comis,'OTROS IMP.':d.imp,'TOTAL C/IVA':tot,
-          ['TOTAL S/IVA ('+Math.round((ivaDiv-1)*100)+'%)']:sin,
-          'TOTAL USD':fxRate?sin/fxRate:'','TC USD':fxRate||'',
-          'FECHA TC':fecha});
+      var tipos = Object.keys(byTipo);
+      tipos.forEach(function(tipo){
+        var d=byTipo[tipo];
+        var tot=d.monto+d.comis+d.imp, sin=tot/ivaDiv;
+        var row = {'PAIS':pais,'MONEDA':moneda,'TIPO':tipo,'MOV':d.count,
+          'IMPORTE C/IVA':d.monto,'COMISION':d.comis,'OTROS IMP.':d.imp,'TOTAL C/IVA':tot};
+        row['TOTAL S/IVA ('+Math.round((ivaDiv-1)*100)+'%)'] = sin;
+        row['TOTAL USD'] = fxRate?sin/fxRate:'';
+        row['TC USD'] = fxRate||'';
+        row['FECHA TC'] = fecha;
+        resRows.push(row);
       });
       resRows.push({});
     });
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(resRows.length?resRows:[{}]), 'Resumen');
 
-    // No clasificados TD
-    const allCols=[]; const seen=new Set();
-    unclassRows.forEach(r=>Object.keys(r._raw).forEach(k=>{if(!seen.has(k)&&!k.startsWith('_')){seen.add(k);allCols.push(k);}}));
-    const unc=unclassRows.map(r=>{const o={'PAÍS':r.country};allCols.forEach(k=>{o[k]=r._raw[k]||'';});return o;});
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(unc.length?unc:[{nota:'Sin no clasificados'}]), 'No clasificados');
+    // No clasificados
+    var allCols2=[]; var seen2=new Set();
+    unclassRows.forEach(function(r){Object.keys(r._raw).forEach(function(k){if(!seen2.has(k)&&!k.startsWith('_')){seen2.add(k);allCols2.push(k);}});});
+    var unc2=unclassRows.map(function(r){var o={'PAIS':r.country};allCols2.forEach(function(k){o[k]=r._raw[k]||'';});return o;});
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(unc2.length?unc2:[{nota:'Sin no clasificados'}]), 'No clasificados');
 
     XLSX.writeFile(wb, 'Resumen tu delivery_'+fecha+'.xlsx');
 
   } else {
-    // ── PROCESAMIENTO DE EXTRACTOS ────────────────────────────
-    const data = allRows.map(r=>({
-      'FECHA DE APROBACIÓN': r.fecha,
-      'FECHA DE LIBERACIÓN': r.fechaLib||r.fecha,
-      'NÚMERO DE IDENTIFICACIÓN': r.numId||'',
-      'ID DE OPERACIÓN EN MERCADO PAGO': r.idOpMP,
-      'TIPO DE OPERACIÓN': r.tipoOp,
-      'MONEDA': r.moneda,
-      'VALOR DE LA COMPRA': r.monto,
-      'COMISIONES + IVA': r.comis,
-      'DETALLE DE LA VENTA': r.detalle||'',
-      'Type': (r.concept==='suscripcion'||r.concept==='deuda_comisiones')?'Paid offline':(CONCEPT_LABELS[r.concept]||r.concept||''),
-      'ID': r.dashId||'',
-      'Nombre': r.nombre||'',
-      'Detalle': r.detalleFact||'',
-    }));
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(data.length?data:[{}]), 'output');
+    // ── EXTRACTO DE MERCADO PAGO — 5 hojas ──
 
-    // No clasificados
-    const allCols=[]; const seen=new Set();
-    unclassRows.forEach(r=>Object.keys(r._raw).forEach(k=>{if(!seen.has(k)&&!k.startsWith('_')){seen.add(k);allCols.push(k);}}));
-    const unc=unclassRows.map(r=>{const o={'PAÍS':r.country};allCols.forEach(k=>{o[k]=r._raw[k]||'';});return o;});
+    // Parse periodo
+    var periodoDesde = libData ? libData.periodoDesde : '';
+    var periodoHasta = libData ? libData.periodoHasta : '';
+
+    function parseFechaLocal(f){
+      if(!f) return null;
+      var p=f.split('/');
+      if(p.length===3) return new Date(p[2]+'-'+p[1]+'-'+p[0]);
+      return new Date(f);
+    }
+    function parseFechaISO(f){
+      if(!f) return null;
+      return new Date(f);
+    }
+
+    var desdeD = periodoDesde ? parseFechaISO(periodoDesde) : null;
+    var hastaD = periodoHasta ? parseFechaISO(periodoHasta) : null;
+    if(hastaD) hastaD.setHours(23,59,59);
+
+    function enPeriodo(fechaLib){
+      if(!desdeD || !hastaD || !fechaLib) return true; // no filter if no period
+      var d = parseFechaLocal(fechaLib);
+      return d >= desdeD && d <= hastaD;
+    }
+
+    // Map row to output format
+    function toOutputRow(r){
+      return {
+        'FECHA DE APROBACION': r.fecha,
+        'FECHA DE LIBERACION': r.fechaLib||r.fecha,
+        'NUMERO DE IDENTIFICACION': r.numId||'',
+        'ID DE OPERACION EN MERCADO PAGO': r.idOpMP,
+        'TIPO DE OPERACION': r.tipoOp,
+        'MONEDA': r.moneda,
+        'VALOR DE LA COMPRA': r.monto,
+        'COMISIONES + IVA': r.comis,
+        'DETALLE DE LA VENTA': r.detalle||'',
+        'Type': (r.concept==='suscripcion'||r.concept==='deuda_comisiones')?'Paid offline':(CONCEPT_LABELS[r.concept]||r.concept||''),
+        'ID': r.dashId||'',
+        'Nombre': r.nombre||'',
+        'Detalle': r.detalleFact||'',
+      };
+    }
+
+    // Hoja 1: output — todos los movimientos
+    var dataOutput = allRows.map(toOutputRow);
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(dataOutput.length?dataOutput:[{}]), 'output');
+
+    // Hoja 2: Paid online — solo paid online
+    var dataPO = allRows.filter(function(r){return r.concept==='paid_online';}).map(toOutputRow);
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(dataPO.length?dataPO:[{}]), 'Paid online');
+
+    // Hoja 3: Extracto — filtrado por fecha de liberacion en periodo, sin col fecha liberacion
+    function toExtractoRow(r){
+      return {
+        'FECHA DE APROBACION': r.fecha,
+        'NUMERO DE IDENTIFICACION': r.numId||'',
+        'ID DE OPERACION EN MERCADO PAGO': r.idOpMP,
+        'TIPO DE OPERACION': r.tipoOp,
+        'MONEDA': r.moneda,
+        'VALOR DE LA COMPRA': r.monto,
+        'COMISIONES + IVA': r.comis,
+        'DETALLE DE LA VENTA': r.detalle||'',
+        'Type': (r.concept==='suscripcion'||r.concept==='deuda_comisiones')?'Paid offline':(CONCEPT_LABELS[r.concept]||r.concept||''),
+        'ID': r.dashId||'',
+        'Nombre': r.nombre||'',
+        'Detalle': r.detalleFact||'',
+      };
+    }
+    var dataExtracto = allRows.filter(function(r){
+      return enPeriodo(r.fechaLib||r.fecha);
+    }).map(toExtractoRow);
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(dataExtracto.length?dataExtracto:[{}]), 'Extracto');
+
+    // Hoja 4: Calculo de saldos
+    var saldoInicial = libData ? (libData.saldoInicial||0) : 0;
+    var sumExtracto = dataExtracto.reduce(function(s,r){ return s + (r['VALOR DE LA COMPRA']||0) + (r['COMISIONES + IVA']||0); }, 0);
+    var saldoTeorico = saldoInicial + sumExtracto;
+    var saldoFinalMP = libData ? libData.saldoFinal : '';
+    var diff = saldoFinalMP !== '' ? saldoTeorico - saldoFinalMP : '';
+    var calcRows = [
+      {'Concepto':'Saldo Inicial Odoo', 'Importe': saldoInicial},
+      {'Concepto':'Movimiento "Extractos"', 'Importe': sumExtracto},
+      {'Concepto':'Saldo final teorico', 'Importe': saldoTeorico},
+      {},
+      {'Concepto':'Saldo final MP (liberaciones)', 'Importe': saldoFinalMP},
+      {'Concepto':'Diferencia', 'Importe': diff},
+    ];
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(calcRows), 'Calculo de saldos');
+
+    // Hoja 5: No clasificados
+    var allCols=[]; var seen=new Set();
+    unclassRows.forEach(function(r){Object.keys(r._raw).forEach(function(k){if(!seen.has(k)&&!k.startsWith('_')){seen.add(k);allCols.push(k);}});});
+    var unc=unclassRows.map(function(r){var o={'PAIS':r.country};allCols.forEach(function(k){o[k]=r._raw[k]||'';});return o;});
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(unc.length?unc:[{nota:'Sin no clasificados'}]), 'No clasificados');
 
     XLSX.writeFile(wb, 'Extracto bancario_'+fecha+'.xlsx');
   }
 }
+
 
 // ── dLOCAL JS ────────────────────────────────────────────────────
 
