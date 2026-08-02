@@ -1504,6 +1504,7 @@ function selectOutput(type) {
     var svbEl = document.getElementById('screen-svb');
     if(svbEl) svbEl.style.display='block';
     [1,2,3].forEach(i => { document.getElementById('step-'+i).classList.remove('active','done'); });
+    try{ initSVB(); } catch(e){ console.warn('SVB init error:', e); }
     return;
   }
   selectedOutput=type;
@@ -3039,7 +3040,13 @@ document.getElementById('reset-link').addEventListener('click', (e) => {
 });
 
 
+
 // ── SVB JS ────────────────────────────────────────────────────
+var svbInitialized = false;
+function initSVB() {
+  if(svbInitialized) return;
+  svbInitialized = true;
+  
 
 // ---------- Estado ----------
 let rawTransactions = [];
@@ -3658,6 +3665,8 @@ document.getElementById('btnDescargar').addEventListener('click', generateCSV);
 
 renderRules();
 
+
+}
 </script>
 </body>
 </html>
