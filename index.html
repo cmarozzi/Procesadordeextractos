@@ -927,13 +927,13 @@ table.data tr:hover td{background:var(--bg2);}
         </div>
         <div class="menu-card" id="card-svb" onclick="selectOutput('svb')">
           <span class="mc-icon">🏛</span>
-          <h3>Extracto SVB</h3>
+          <h3>Extracto de SVB</h3>
           <p>Procesa el extracto de SVB, clasifica movimientos y genera el archivo para Odoo.</p>
         </div>
         <div class="menu-card coming-soon" style="filter:blur(1.5px);pointer-events:none">
           <span class="soon-badge">Próximamente</span>
           <span class="mc-icon">🅿️</span>
-          <h3>Extracto PayPal</h3>
+          <h3>Extracto de PayPal</h3>
           <p>Procesamiento de extractos de PayPal. En desarrollo.</p>
         </div>
       </div>
@@ -1486,7 +1486,7 @@ function goStep(n) {
       : 'Archivos · Extracto de Mercado Pago';
     var ls=document.getElementById('lib-section'); if(ls) ls.style.display=selectedOutput==='extracto'?'block':'none';
     var rs=document.getElementById('rules-section'); if(rs) rs.style.display=(selectedOutput==='td'||selectedOutput==='extracto'||selectedOutput==='svb')?'block':'none';
-    loadRulesForModule();
+    try{ loadRulesForModule(); }catch(e){ console.warn(e); }
     setTimeout(function(){ var pf=document.getElementById('periodo-desde'); if(pf){ pf.addEventListener('input',checkReady); document.getElementById('periodo-hasta').addEventListener('input',checkReady); document.getElementById('saldo-inicial').addEventListener('input',checkReady); } }, 100);
     checkReady();
   }
@@ -1576,6 +1576,7 @@ function onSaldoManualChange() {
 }
 
 function checkReady() {
+  try {
   var hasExtractos = extractos.length > 0;
   var hasAcc = !!accFile;
   var libOk = true;
@@ -1591,8 +1592,8 @@ function checkReady() {
     libOk = hasPeriodo && hasSaldoInicial && (hasLib || hasManual);
   }
   var btnProcess = document.getElementById('btn-process');
-  // accounts required for both td and extracto (for deuda_comisiones matching)
   if(btnProcess) btnProcess.disabled = !(hasExtractos && hasAcc && libOk);
+  } catch(e){ console.warn('checkReady error:', e); }
 }
 
 // ── FILE READING ──────────────────────────────────────────────
