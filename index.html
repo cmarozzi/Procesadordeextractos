@@ -2854,6 +2854,7 @@ let PREVIEW_SHEET = 'dlocal';
 
 function setupDropzone(id, expectedExt) {
   const zone = document.getElementById(id);
+  if(!zone) return;
   const input = zone.querySelector('input[type=file]');
   const key = input.dataset.key;
 
@@ -2968,7 +2969,7 @@ function escapeHtml(s) {
 }
 
 // Wiring
-['drop-dlocal','drop-brl','drop-plantilla','drop-accountss'].forEach(id => setupDropzone(id));
+try{ ['drop-dlocal','drop-brl','drop-plantilla','drop-accountss'].forEach(id => setupDropzone(id)); }catch(e){ console.warn('dLocal init:', e); }
 
 document.getElementById('btn-procesar').addEventListener('click', async () => {
   const btn = document.getElementById('btn-procesar');
@@ -3430,6 +3431,7 @@ function setupDropzone(zoneId, inputId, nameId, multiple){
   const zone = document.getElementById(zoneId);
   const input = document.getElementById(inputId);
   const nameEl = document.getElementById(nameId);
+  if(!zone || !input || !nameEl) return; // elements not in DOM yet
   function updateLabel(){
     if (input.files && input.files.length){
       zone.classList.add('loaded');
