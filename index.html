@@ -912,7 +912,7 @@ table.data tr:hover td{background:var(--bg2);}
       <div class="menu-grid">
         <div class="menu-card" id="card-td" onclick="selectOutput('td')">
           <span class="mc-icon">📦</span>
-          <h3>Resumen Tu Delivery</h3>
+          <h3>Resumen de Tu Delivery</h3>
           <p>Diferencia tipos de deuda pagados con ID de Dash, País y tipo de cambio del día.</p>
         </div>
         <div class="menu-card" id="card-extracto" onclick="selectOutput('extracto')">
@@ -1482,7 +1482,7 @@ function goStep(n) {
   if(n===2) {
     document.getElementById('acc-section').style.display = 'block';
     document.getElementById('step2-title').textContent = selectedOutput==='td'
-      ? 'Archivos · Resumen Tu Delivery'
+      ? 'Archivos · Resumen de Tu Delivery'
       : 'Archivos · Extracto de Mercado Pago';
     var ls=document.getElementById('lib-section'); if(ls) ls.style.display=selectedOutput==='extracto'?'block':'none';
     var rs=document.getElementById('rules-section'); if(rs) rs.style.display=(selectedOutput==='td'||selectedOutput==='extracto'||selectedOutput==='svb')?'block':'none';
