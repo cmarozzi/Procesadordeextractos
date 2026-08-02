@@ -49,7 +49,7 @@ body{font-family:var(--font);background:var(--bg2);color:var(--text);min-height:
 .card{background:var(--bg);border-radius:14px;border:0.5px solid var(--border2);padding:1.5rem;margin-bottom:1.5rem;box-shadow:var(--shadow);}
 .card-title{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;font-family:var(--mono);margin-bottom:1.25rem;}
 
-.menu-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;} @media(max-width:700px){.menu-grid{grid-template-columns:1fr 1fr;}}
+.menu-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
 .menu-card{border:1.5px solid var(--border2);border-radius:12px;padding:1.25rem;cursor:pointer;transition:all .15s;background:var(--bg2);position:relative;}
 .menu-card:hover:not(.coming-soon){border-color:var(--orange);background:var(--orange-bg);}
 .menu-card.selected{border-color:var(--orange);border-width:2px;background:var(--orange-bg);}
@@ -148,213 +148,6 @@ table.data tr:hover td{background:var(--bg2);}
 .tooltip-icon:hover + .tooltip-box{opacity:1;}
 
 .screen{display:none;}.screen.active{display:block;}
-
-/* ── SVB STYLES ─────────────────────────────────────────── */
-.svb-screen{display:none}
-.svb-screen.active{display:block}
-.svb-screen {
-  --warn:#a3720a; --warn-bg:#fdf1d6; --line:#E4E1D9;
-}
-
-.svb-screen .topbar {
-    height:6px;background:var(--orange);width:100%;
-  }
-  .wrap{max-width:1180px;margin:0 auto;padding:28px 24px 80px;}
-
-.svb-screen header.top {
-    display:flex;align-items:center;gap:14px;margin-bottom:24px;
-  }
-.svb-screen header.top .mark {
-    width:40px;height:40px;border-radius:10px;background:var(--orange);
-    display:flex;align-items:center;justify-content:center;flex-shrink:0;
-  }
-.svb-screen header.top .mark span {
-    font-family:'Barlow',sans-serif;font-weight:700;color:#fff;font-size:16px;
-  }
-.svb-screen header.top h1 {
-    font-family:'Barlow',sans-serif;font-weight:700;font-size:23px;margin:0;letter-spacing:.1px;color:var(--text);
-  }
-  header.top p{margin:2px 0 0;color:var(--text2);font-size:13.5px;}
-
-  /* ---- Steps ---- */
-  .steps{display:flex;align-items:center;gap:10px;margin-bottom:22px;}
-  .step{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--text3);}
-.svb-screen .step .step-num {
-    width:22px;height:22px;border-radius:50%;border:1.5px solid var(--text3);color:var(--text3);
-    display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:12px;font-weight:500;
-    transition:all .15s ease;
-  }
-  .step.active{color:var(--text);}
-  .step.active .step-num{border-color:var(--orange);background:var(--orange);color:#fff;}
-  .step.done .step-num{border-color:var(--green);background:var(--green);color:#fff;}
-  .step.done{color:var(--text2);}
-  .step-sep{width:32px;height:1.5px;background:var(--line);}
-
-.svb-screen .card {
-    background:#fff;border:1.5px solid var(--line);border-radius:var(--radius);
-    padding:22px 24px;margin-bottom:20px;
-  }
-.svb-screen .card h2 {
-    font-family:'Barlow',sans-serif;font-size:15px;font-weight:700;
-    text-transform:uppercase;letter-spacing:.5px;margin:0 0 16px;color:var(--text);
-  }
-  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;}
-  label{display:block;font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.3px;margin-bottom:6px;font-family:var(--mono);}
-.svb-screen input[type=date], .svb-screen input[type=text], .svb-screen input[type=number], .svb-screen select {
-    width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:7px;
-    font-family:'Barlow',sans-serif;font-size:14.5px;background:#fff;color:var(--text);
-  }
-  input:focus,select:focus{outline:2px solid var(--orange);outline-offset:1px;}
-  .field-note{font-size:11.5px;color:var(--text3);margin-top:5px;}
-
-  /* ---- Dropzones ---- */
-.svb-screen .dropzone {
-    position:relative;border:1.5px dashed var(--line);border-radius:var(--radius);
-    padding:18px 14px;text-align:center;cursor:pointer;background:#fefefe;
-    transition:border-color .15s ease, background .15s ease;
-  }
-  .dropzone:hover{border-color:var(--orange);background:#fff9f6;}
-  .dropzone.dragover{border-color:var(--orange);background:#fff2ec;}
-  .dropzone.loaded{border-style:solid;border-color:var(--orange);background:#fff8f5;}
-  .dropzone .dz-input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;}
-  .dz-label{font-weight:600;font-size:14px;color:var(--text);}
-  .dz-note{font-size:11.5px;color:var(--text3);margin-top:4px;}
-  .dz-filename{font-family:var(--mono);font-size:11.5px;color:var(--orange);margin-top:8px;word-break:break-all;}
-
-  /* ---- Tooltip ---- */
-.svb-screen .tip {
-    display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;
-    border-radius:50%;background:var(--text3);color:#fff;font-size:10px;font-weight:700;
-    cursor:default;position:relative;margin-left:5px;vertical-align:middle;font-family:var(--mono);
-  }
-  .tip:hover{background:var(--orange);}
-.svb-screen .tip::after {
-    content:attr(data-tip);position:absolute;bottom:135%;left:50%;transform:translateX(-50%);
-    background:#1c1c1c;color:#fff;font-size:11.5px;font-family:'Barlow',sans-serif;font-weight:500;
-    padding:7px 10px;border-radius:6px;white-space:normal;width:200px;line-height:1.35;
-    opacity:0;pointer-events:none;transition:opacity .15s ease;z-index:20;text-transform:none;letter-spacing:0;
-  }
-.svb-screen .tip::before {
-    content:'';position:absolute;bottom:120%;left:50%;transform:translateX(-50%);
-    border:5px solid transparent;border-top-color:#1c1c1c;opacity:0;transition:opacity .15s ease;
-  }
-  .tip:hover::after,.tip:hover::before{opacity:1;}
-
-.svb-screen .btn {
-    appearance:none;border:none;border-radius:10px;padding:11px 20px;font-family:'Barlow',sans-serif;
-    font-weight:600;font-size:14.5px;cursor:pointer;transition:filter .15s ease;
-  }
-  .btn:hover{filter:brightness(0.94);}
-  .btn:disabled{opacity:.45;cursor:not-allowed;}
-  .btn-primary{background:var(--orange);color:#fff;}
-  .btn-secondary{background:var(--navy);color:#fff;}
-  .btn-ghost{background:transparent;color:var(--navy);border:1px solid var(--navy);}
-  .btn-sm{padding:6px 12px;font-size:13px;border-radius:6px;}
-  .actions-row{display:flex;gap:12px;margin-top:18px;flex-wrap:wrap;align-items:center;}
-
-  /* ---- Pills de resumen ---- */
-  .summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:18px;}
-  .stat{background:#fff;border:1px solid var(--line);border-radius:9px;padding:14px 16px;box-shadow:0 1px 3px rgba(0,0,0,.05);}
-  .stat .n{font-family:var(--mono);font-size:23px;font-weight:500;color:var(--orange);}
-  .stat .l{font-size:11.5px;color:var(--text2);text-transform:uppercase;letter-spacing:.3px;margin-top:2px;font-family:var(--mono);}
-  .stat.balance{grid-column:span 1;border-color:var(--orange);}
-  .stat.balance .n{font-size:27px;font-weight:500;}
-  .stat.warn-stat{border-color:#f0d59a;}
-  .stat.warn-stat .n{color:var(--warn);}
-  .stat.ok-stat{border-color:#b7e3c9;}
-  .stat.ok-stat .n{color:var(--green);}
-  .stat.filter-pill{cursor:pointer;user-select:none;transition:box-shadow .15s ease, transform .1s ease;}
-  .stat.filter-pill:hover{box-shadow:0 2px 8px rgba(0,0,0,.08);}
-  .stat.filter-pill.active{border-width:2px;border-color:var(--orange);}
-  .stat.filter-pill.active.warn-stat{border-color:var(--warn);}
-  .stat.filter-pill.active.ok-stat{border-color:var(--green);}
-
-  table{width:100%;border-collapse:collapse;font-size:13.5px;}
-  .table-scroll{max-height:340px;overflow-y:auto;border:1px solid var(--line);border-radius:8px;}
-.svb-screen thead th {
-    position:sticky;top:0;background:#fbfaf8;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.3px;color:var(--text2);
-    border-bottom:2px solid var(--line);padding:9px 10px;font-weight:600;white-space:nowrap;font-family:var(--mono);z-index:1;
-  }
-  tbody td{padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top;}
-  tbody tr:hover{background:#faf9f6;}
-  tbody tr.no-match{background:#fff8ea;}
-  tbody tr.no-match:hover{background:#fff3d9;}
-  tbody tr.regla-match td:first-child{border-left:3px solid var(--orange);}
-  tbody tr.odoo-match td:first-child{border-left:3px solid var(--green);}
-  tbody tr.no-match td:first-child{border-left:3px solid var(--warn);}
-  tbody tr.manual-match td:first-child{border-left:3px solid var(--green);}
-.svb-screen .badge {
-    display:inline-block;font-size:10px;font-weight:500;text-transform:uppercase;
-    padding:2px 8px;border-radius:20px;letter-spacing:.3px;font-family:var(--mono);
-  }
-  .badge-odoo{background:rgba(0,166,80,.12);color:var(--green);}
-  .badge-regla{background:rgba(255,80,35,.12);color:var(--orange);}
-  .badge-none{background:rgba(163,114,10,.14);color:var(--warn);}
-  .badge-manual{background:rgba(0,166,80,.12);color:var(--green);}
-  .imp-neg{color:var(--red);font-family:var(--mono);}
-  .imp-pos{color:var(--green);font-family:var(--mono);}
-  .mono{font-family:var(--mono);}
-  .ref-cell{max-width:280px;white-space:normal;word-break:break-word;color:var(--text3);font-size:12px;font-family:var(--mono);}
-  .editable-cell{padding:3px 5px;margin:-3px -5px;border-radius:5px;cursor:text;min-width:40px;}
-  .editable-cell:hover{background:#f4f3f0;}
-  .editable-cell:focus{outline:2px solid var(--orange);outline-offset:0;background:#fff;}
-
-  .fix-form{margin-top:8px;padding:10px;background:#fff;border:1px dashed var(--line);border-radius:8px;display:none;}
-  .fix-form.open{display:block;}
-  .fix-form .row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;}
-  .fix-form label{margin-bottom:3px;}
-  .fix-form .full{grid-column:1/-1;}
-
-  details.rules{border:1.5px solid var(--line);border-radius:var(--radius);background:#fff;}
-.svb-screen details.rules summary {
-    cursor:pointer;padding:16px 24px;font-family:'Barlow',sans-serif;font-weight:700;
-    font-size:15px;text-transform:uppercase;letter-spacing:.5px;color:var(--text);list-style:none;
-    display:flex;justify-content:space-between;align-items:center;
-  }
-  details.rules summary::-webkit-details-marker{display:none;}
-  details.rules summary::after{content:'▾';font-size:14px;color:var(--text3);transition:transform .15s;}
-  details.rules[open] summary::after{transform:rotate(180deg);}
-  .rules-body{padding:4px 24px 22px;}
-.svb-screen .rule-row {
-    display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);font-size:13.5px;
-  }
-  .rule-row:last-child{border-bottom:none;}
-.svb-screen .rule-tag {
-    font-size:10px;font-weight:500;text-transform:uppercase;padding:2px 8px;border-radius:20px;
-    background:#eee;color:#666;flex-shrink:0;font-family:var(--mono);
-  }
-  .rule-tag.builtin{background:rgba(57,56,160,.12);color:var(--navy);}
-  .rule-tag.custom{background:rgba(255,80,35,.12);color:var(--orange);}
-  .rule-text{flex:1;color:var(--text);}
-  .rule-text b{color:var(--text);font-weight:700;}
-  .rule-del{background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px;padding:4px 8px;}
-  .rule-del:hover{color:var(--red);}
-  .add-rule-form{margin-top:14px;padding-top:14px;border-top:1px solid var(--line);}
-
-  .empty{color:var(--text3);font-size:14px;padding:20px 0;text-align:center;}
-  .hint{font-size:12px;color:var(--text3);margin-top:10px;}
-.svb-screen .toast {
-    position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
-    background:#1c1c1c;color:#fff;padding:10px 20px;border-radius:8px;font-size:14px;
-    opacity:0;pointer-events:none;transition:opacity .2s ease;z-index:99;
-  }
-  .toast.show{opacity:1;}
-
-
-
-/* ── REGLAS DESPLEGABLE ──────────────────────────────────── */
-.rules-toggle{display:flex;align-items:center;gap:6px;font-size:11px;font-family:var(--mono);color:var(--text2);cursor:pointer;padding:6px 0;border:none;background:none;font-weight:500;}
-.rules-toggle:hover{color:var(--orange);}
-.rules-toggle .arrow{transition:transform .2s;display:inline-block;}
-.rules-toggle.open .arrow{transform:rotate(180deg);}
-.rules-dropdown{display:none;margin-top:8px;border:0.5px solid var(--border2);border-radius:8px;overflow:hidden;}
-.rules-dropdown.open{display:block;}
-.rules-dropdown table{width:100%;border-collapse:collapse;font-size:11px;}
-.rules-dropdown table th{padding:6px 10px;background:var(--bg2);font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--text2);text-align:left;border-bottom:0.5px solid var(--border2);}
-.rules-dropdown table td{padding:6px 10px;border-top:0.5px solid var(--border);font-family:var(--mono);font-size:11px;color:var(--text);}
-.rules-dropdown table tr:hover td{background:var(--bg2);}
-.rules-loading{padding:12px;text-align:center;font-size:11px;font-family:var(--mono);color:var(--text3);}
-
 
 /* ── dLOCAL STYLES ──────────────────────────────────────────────── */
 .dlocal-screen{display:none}
@@ -877,6 +670,195 @@ table.data tr:hover td{background:var(--bg2);}
     margin-right: 8px;
   }
 
+
+/* ── SVB STYLES ─────────────────────────────────────── */
+.svb-screen{display:none}
+.svb-screen { --warn:#a3720a; --warn-bg:#fdf1d6; --line:#E4E1D9; }
+
+.svb-screen .topbar {
+    height:6px;background:var(--orange);width:100%;
+  }
+  .wrap{max-width:1180px;margin:0 auto;padding:28px 24px 80px;}
+
+.svb-screen header.top {
+    display:flex;align-items:center;gap:14px;margin-bottom:24px;
+  }
+.svb-screen header.top .mark {
+    width:40px;height:40px;border-radius:10px;background:var(--orange);
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  }
+.svb-screen header.top .mark span {
+    font-family:'Barlow',sans-serif;font-weight:700;color:#fff;font-size:16px;
+  }
+.svb-screen header.top h1 {
+    font-family:'Barlow',sans-serif;font-weight:700;font-size:23px;margin:0;letter-spacing:.1px;color:var(--text);
+  }
+  header.top p{margin:2px 0 0;color:var(--text2);font-size:13.5px;}
+
+  /* ---- Steps ---- */
+  .steps{display:flex;align-items:center;gap:10px;margin-bottom:22px;}
+  .step{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--text3);}
+.svb-screen .step .step-num {
+    width:22px;height:22px;border-radius:50%;border:1.5px solid var(--text3);color:var(--text3);
+    display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:12px;font-weight:500;
+    transition:all .15s ease;
+  }
+  .step.active{color:var(--text);}
+  .step.active .step-num{border-color:var(--orange);background:var(--orange);color:#fff;}
+  .step.done .step-num{border-color:var(--green);background:var(--green);color:#fff;}
+  .step.done{color:var(--text2);}
+  .step-sep{width:32px;height:1.5px;background:var(--line);}
+
+.svb-screen .card {
+    background:#fff;border:1.5px solid var(--line);border-radius:var(--radius);
+    padding:22px 24px;margin-bottom:20px;
+  }
+.svb-screen .card h2 {
+    font-family:'Barlow',sans-serif;font-size:15px;font-weight:700;
+    text-transform:uppercase;letter-spacing:.5px;margin:0 0 16px;color:var(--text);
+  }
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;}
+  label{display:block;font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.3px;margin-bottom:6px;font-family:var(--mono);}
+.svb-screen input[type=date], .svb-screen input[type=text], .svb-screen input[type=number], .svb-screen select {
+    width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:7px;
+    font-family:'Barlow',sans-serif;font-size:14.5px;background:#fff;color:var(--text);
+  }
+  input:focus,select:focus{outline:2px solid var(--orange);outline-offset:1px;}
+  .field-note{font-size:11.5px;color:var(--text3);margin-top:5px;}
+
+  /* ---- Dropzones ---- */
+.svb-screen .dropzone {
+    position:relative;border:1.5px dashed var(--line);border-radius:var(--radius);
+    padding:18px 14px;text-align:center;cursor:pointer;background:#fefefe;
+    transition:border-color .15s ease, background .15s ease;
+  }
+  .dropzone:hover{border-color:var(--orange);background:#fff9f6;}
+  .dropzone.dragover{border-color:var(--orange);background:#fff2ec;}
+  .dropzone.loaded{border-style:solid;border-color:var(--orange);background:#fff8f5;}
+  .dropzone .dz-input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;}
+  .dz-label{font-weight:600;font-size:14px;color:var(--text);}
+  .dz-note{font-size:11.5px;color:var(--text3);margin-top:4px;}
+  .dz-filename{font-family:var(--mono);font-size:11.5px;color:var(--orange);margin-top:8px;word-break:break-all;}
+
+  /* ---- Tooltip ---- */
+.svb-screen .tip {
+    display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;
+    border-radius:50%;background:var(--text3);color:#fff;font-size:10px;font-weight:700;
+    cursor:default;position:relative;margin-left:5px;vertical-align:middle;font-family:var(--mono);
+  }
+  .tip:hover{background:var(--orange);}
+.svb-screen .tip::after {
+    content:attr(data-tip);position:absolute;bottom:135%;left:50%;transform:translateX(-50%);
+    background:#1c1c1c;color:#fff;font-size:11.5px;font-family:'Barlow',sans-serif;font-weight:500;
+    padding:7px 10px;border-radius:6px;white-space:normal;width:200px;line-height:1.35;
+    opacity:0;pointer-events:none;transition:opacity .15s ease;z-index:20;text-transform:none;letter-spacing:0;
+  }
+.svb-screen .tip::before {
+    content:'';position:absolute;bottom:120%;left:50%;transform:translateX(-50%);
+    border:5px solid transparent;border-top-color:#1c1c1c;opacity:0;transition:opacity .15s ease;
+  }
+  .tip:hover::after,.tip:hover::before{opacity:1;}
+
+.svb-screen .btn {
+    appearance:none;border:none;border-radius:10px;padding:11px 20px;font-family:'Barlow',sans-serif;
+    font-weight:600;font-size:14.5px;cursor:pointer;transition:filter .15s ease;
+  }
+  .btn:hover{filter:brightness(0.94);}
+  .btn:disabled{opacity:.45;cursor:not-allowed;}
+  .btn-primary{background:var(--orange);color:#fff;}
+  .btn-secondary{background:var(--navy);color:#fff;}
+  .btn-ghost{background:transparent;color:var(--navy);border:1px solid var(--navy);}
+  .btn-sm{padding:6px 12px;font-size:13px;border-radius:6px;}
+  .actions-row{display:flex;gap:12px;margin-top:18px;flex-wrap:wrap;align-items:center;}
+
+  /* ---- Pills de resumen ---- */
+  .summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:18px;}
+  .stat{background:#fff;border:1px solid var(--line);border-radius:9px;padding:14px 16px;box-shadow:0 1px 3px rgba(0,0,0,.05);}
+  .stat .n{font-family:var(--mono);font-size:23px;font-weight:500;color:var(--orange);}
+  .stat .l{font-size:11.5px;color:var(--text2);text-transform:uppercase;letter-spacing:.3px;margin-top:2px;font-family:var(--mono);}
+  .stat.balance{grid-column:span 1;border-color:var(--orange);}
+  .stat.balance .n{font-size:27px;font-weight:500;}
+  .stat.warn-stat{border-color:#f0d59a;}
+  .stat.warn-stat .n{color:var(--warn);}
+  .stat.ok-stat{border-color:#b7e3c9;}
+  .stat.ok-stat .n{color:var(--green);}
+  .stat.filter-pill{cursor:pointer;user-select:none;transition:box-shadow .15s ease, transform .1s ease;}
+  .stat.filter-pill:hover{box-shadow:0 2px 8px rgba(0,0,0,.08);}
+  .stat.filter-pill.active{border-width:2px;border-color:var(--orange);}
+  .stat.filter-pill.active.warn-stat{border-color:var(--warn);}
+  .stat.filter-pill.active.ok-stat{border-color:var(--green);}
+
+  table{width:100%;border-collapse:collapse;font-size:13.5px;}
+  .table-scroll{max-height:340px;overflow-y:auto;border:1px solid var(--line);border-radius:8px;}
+.svb-screen thead th {
+    position:sticky;top:0;background:#fbfaf8;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.3px;color:var(--text2);
+    border-bottom:2px solid var(--line);padding:9px 10px;font-weight:600;white-space:nowrap;font-family:var(--mono);z-index:1;
+  }
+  tbody td{padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top;}
+  tbody tr:hover{background:#faf9f6;}
+  tbody tr.no-match{background:#fff8ea;}
+  tbody tr.no-match:hover{background:#fff3d9;}
+  tbody tr.regla-match td:first-child{border-left:3px solid var(--orange);}
+  tbody tr.odoo-match td:first-child{border-left:3px solid var(--green);}
+  tbody tr.no-match td:first-child{border-left:3px solid var(--warn);}
+  tbody tr.manual-match td:first-child{border-left:3px solid var(--green);}
+.svb-screen .badge {
+    display:inline-block;font-size:10px;font-weight:500;text-transform:uppercase;
+    padding:2px 8px;border-radius:20px;letter-spacing:.3px;font-family:var(--mono);
+  }
+  .badge-odoo{background:rgba(0,166,80,.12);color:var(--green);}
+  .badge-regla{background:rgba(255,80,35,.12);color:var(--orange);}
+  .badge-none{background:rgba(163,114,10,.14);color:var(--warn);}
+  .badge-manual{background:rgba(0,166,80,.12);color:var(--green);}
+  .imp-neg{color:var(--red);font-family:var(--mono);}
+  .imp-pos{color:var(--green);font-family:var(--mono);}
+  .mono{font-family:var(--mono);}
+  .ref-cell{max-width:280px;white-space:normal;word-break:break-word;color:var(--text3);font-size:12px;font-family:var(--mono);}
+  .editable-cell{padding:3px 5px;margin:-3px -5px;border-radius:5px;cursor:text;min-width:40px;}
+  .editable-cell:hover{background:#f4f3f0;}
+  .editable-cell:focus{outline:2px solid var(--orange);outline-offset:0;background:#fff;}
+
+  .fix-form{margin-top:8px;padding:10px;background:#fff;border:1px dashed var(--line);border-radius:8px;display:none;}
+  .fix-form.open{display:block;}
+  .fix-form .row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;}
+  .fix-form label{margin-bottom:3px;}
+  .fix-form .full{grid-column:1/-1;}
+
+  details.rules{border:1.5px solid var(--line);border-radius:var(--radius);background:#fff;}
+.svb-screen details.rules summary {
+    cursor:pointer;padding:16px 24px;font-family:'Barlow',sans-serif;font-weight:700;
+    font-size:15px;text-transform:uppercase;letter-spacing:.5px;color:var(--text);list-style:none;
+    display:flex;justify-content:space-between;align-items:center;
+  }
+  details.rules summary::-webkit-details-marker{display:none;}
+  details.rules summary::after{content:'▾';font-size:14px;color:var(--text3);transition:transform .15s;}
+  details.rules[open] summary::after{transform:rotate(180deg);}
+  .rules-body{padding:4px 24px 22px;}
+.svb-screen .rule-row {
+    display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);font-size:13.5px;
+  }
+  .rule-row:last-child{border-bottom:none;}
+.svb-screen .rule-tag {
+    font-size:10px;font-weight:500;text-transform:uppercase;padding:2px 8px;border-radius:20px;
+    background:#eee;color:#666;flex-shrink:0;font-family:var(--mono);
+  }
+  .rule-tag.builtin{background:rgba(57,56,160,.12);color:var(--navy);}
+  .rule-tag.custom{background:rgba(255,80,35,.12);color:var(--orange);}
+  .rule-text{flex:1;color:var(--text);}
+  .rule-text b{color:var(--text);font-weight:700;}
+  .rule-del{background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px;padding:4px 8px;}
+  .rule-del:hover{color:var(--red);}
+  .add-rule-form{margin-top:14px;padding-top:14px;border-top:1px solid var(--line);}
+
+  .empty{color:var(--text3);font-size:14px;padding:20px 0;text-align:center;}
+  .hint{font-size:12px;color:var(--text3);margin-top:10px;}
+.svb-screen .toast {
+    position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+    background:#1c1c1c;color:#fff;padding:10px 20px;border-radius:8px;font-size:14px;
+    opacity:0;pointer-events:none;transition:opacity .2s ease;z-index:99;
+  }
+  .toast.show{opacity:1;}
+
 </style>
 </head>
 <body>
@@ -958,17 +940,6 @@ table.data tr:hover td{background:var(--bg2);}
       <button class="add-file-btn" onclick="document.getElementById('ext-input').click()">＋ Agregar extracto</button>
       <input type="file" id="ext-input" accept=".xlsx,.xls" style="display:none" onchange="onExtractoFile(event)">
 
-      <!-- Rules dropdown -->
-      <div id="rules-section" style="display:none;margin-top:1rem">
-        <button class="rules-toggle" id="rules-toggle-btn" onclick="toggleRules()">
-          📋 Ver reglas de clasificación <span class="arrow">▾</span>
-        </button>
-        <div class="rules-dropdown" id="rules-dropdown">
-          <div class="rules-loading" id="rules-loading">Cargando reglas...</div>
-          <table id="rules-table" style="display:none"><thead id="rules-thead"><tr></tr></thead><tbody id="rules-tbody"></tbody></table>
-        </div>
-      </div>
-
       <div id="acc-section" style="display:none">
         <div class="divider"></div>
         <div class="upload-label">
@@ -984,60 +955,6 @@ table.data tr:hover td{background:var(--bg2);}
           <div>
             <div class="dz-name" id="acc-name">accounts_XXXXX.csv</div>
             <div class="dz-hint">CSV o XLSX</div>
-          </div>
-        </div>
-        <div id="lib-section" style="display:none;margin-top:1rem">
-          <div class="divider"></div>
-
-          <!-- Periodo + Saldo inicial -->
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1rem">
-            <div>
-              <div class="upload-label" style="margin-bottom:6px">
-                Período a importar <span class="req">requerido</span>
-                <span class="tooltip-wrap">
-                  <span class="tooltip-icon">?</span>
-                  <span class="tooltip-box">Mes que estás facturando. Los paid online se filtran por fecha de aprobación dentro de este rango.</span>
-                </span>
-              </div>
-              <div style="display:flex;gap:6px">
-                <input type="date" id="periodo-desde" style="flex:1;padding:8px;border:0.5px solid var(--border2);border-radius:8px;font-family:var(--mono);font-size:12px;background:var(--bg2)">
-                <input type="date" id="periodo-hasta" style="flex:1;padding:8px;border:0.5px solid var(--border2);border-radius:8px;font-family:var(--mono);font-size:12px;background:var(--bg2)">
-              </div>
-            </div>
-            <div>
-              <div class="upload-label" style="margin-bottom:6px">
-                Saldo inicial Odoo <span class="req">requerido</span>
-                <span class="tooltip-wrap">
-                  <span class="tooltip-icon">?</span>
-                  <span class="tooltip-box">Saldo de la cuenta MP en Odoo al inicio del período.</span>
-                </span>
-              </div>
-              <input type="number" id="saldo-inicial" step="0.01" placeholder="0.00"
-                style="width:100%;padding:8px;border:0.5px solid var(--border2);border-radius:8px;font-family:var(--mono);font-size:12px;background:var(--bg2)">
-            </div>
-          </div>
-
-          <!-- Liberaciones: archivo o manual -->
-          <div class="upload-label" style="margin-bottom:6px">
-            Reporte de Liberaciones de Mercado Pago
-            <span class="tooltip-wrap">
-              <span class="tooltip-icon">?</span>
-              <span class="tooltip-box">Reporte "reserve-release" descargable desde el portal de Mercado Pago. Si no tenés el archivo podés ingresar el saldo final manualmente.</span>
-            </span>
-          </div>
-          <div class="dz" id="dz-lib" ondragover="onDrag(event,'dz-lib')" ondragleave="offDrag('dz-lib')" ondrop="onDropLib(event)">
-            <input type="file" accept=".xlsx,.xls" onchange="loadLib(event)">
-            <div class="dz-icon">📊</div>
-            <div>
-              <div class="dz-name" id="lib-name">reserve-release-XXXXX.xlsx</div>
-              <div class="dz-hint">XLSX — o ingresá el saldo manualmente abajo</div>
-            </div>
-          </div>
-          <div style="display:flex;align-items:center;gap:10px;margin-top:8px">
-            <span style="font-size:11px;color:var(--text3);font-family:var(--mono)">o ingresá el saldo final MP manualmente:</span>
-            <input type="number" id="saldo-final-manual" step="0.01" placeholder="0.00"
-              style="width:140px;padding:6px 8px;border:0.5px solid var(--border2);border-radius:8px;font-family:var(--mono);font-size:12px;background:var(--bg2)"
-              oninput="onSaldoManualChange()">
           </div>
         </div>
       </div>
@@ -1074,13 +991,13 @@ table.data tr:hover td{background:var(--bg2);}
   </div>
 
 
-<!-- ── SVB SCREEN ─────────────────────────────────────────── -->
+<!-- ── SVB SCREEN ─────────────────────────────────── -->
 <div class="svb-screen" id="screen-svb">
   <div style="padding:1rem 0 0.5rem;max-width:1180px;margin:0 auto;padding-left:24px">
     <button onclick="closeSvb()" style="display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:white;border:0.5px solid rgba(0,0,0,.13);border-radius:8px;font-size:13px;cursor:pointer;font-family:Barlow,sans-serif;color:#3B3B3B;">← Volver al menú</button>
   </div>
   <div class="wrap">
-    <div class="topbar"></div>
+<div class="topbar"></div>
 <div class="wrap">
 
   <header class="top">
@@ -1358,14 +1275,14 @@ table.data tr:hover td{background:var(--bg2);}
 
 <script>
 // ── GOOGLE SHEETS ─────────────────────────────────────────────
-const GS_URL = 'https://script.google.com/macros/s/AKfycbzpahIOkqOZJifIGaLe74onKzwwqG2KPO9vqAeOmGisWSJIhbnwFwdv2cjxwKJ5DQic6Q/exec';
+const GS_URL = 'https://script.google.com/macros/s/AKfycbwBUbJgGq0EUOLVrFS5Q75FtBCeOatZ6qzSLFMxfCcfzJBP_Xo1dB-Kxkk5irwwKcHR/exec';
 let customRules = [];
 
 async function loadCustomRules() {
   try {
-    const r = await fetch(GS_URL + '?modulo=mp');
+    const r = await fetch(GS_URL + '?action=get_custom');
     const d = await r.json();
-    customRules = d.reglas || d.custom || [];
+    customRules = d.custom || [];
     document.getElementById('rules-badge').textContent = '⚡ ' + customRules.length + ' reglas';
   } catch(e) { console.warn('Reglas no disponibles', e); }
 }
@@ -1375,7 +1292,7 @@ async function saveRule(patron, campo, concepto, pais, notas) {
     await fetch(GS_URL, {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({patron, campo, concepto, pais, notas, modulo: 'mp', fecha: new Date().toISOString()})
+      body: JSON.stringify({patron, campo, concepto, pais, notas})
     });
     await loadCustomRules();
   } catch(e) { console.warn('No se guardó la regla', e); }
@@ -1383,7 +1300,7 @@ async function saveRule(patron, campo, concepto, pais, notas) {
 
 // ── STATE ─────────────────────────────────────────────────────
 let selectedOutput = null;
-let extractos = [], accFile = null, libFile = null, libData = null;
+let extractos = [], accFile = null;
 let tdRows = [], unclassRows = [], allRows = [];
 let accountsMap = {};
 let fx = {ARS:null, CLP:null, MXN:null};
@@ -1444,16 +1361,7 @@ const MEDIO_MAP = {
   'transferencia bancaria':'bank_transfer','moneda digital':'digital_currency',
   'cupón de pago':'coupon','cupon de pago':'coupon',
 };
-const normTipoOp = v => {
-  const s = String(v||'').toLowerCase().trim();
-  if(TIPO_OP_MAP[s]) return TIPO_OP_MAP[s];
-  // Already in English format (ARG)
-  const up = String(v||'').trim().toUpperCase();
-  if(up==='SETTLEMENT') return 'SETTLEMENT';
-  if(up==='REFUND') return 'REFUND';
-  if(up==='PAYOUTS') return 'PAYOUTS';
-  return String(v||'').trim();
-};
+const normTipoOp = v => TIPO_OP_MAP[String(v||'').toLowerCase().trim()] || String(v||'').trim();
 const normMedio  = v => MEDIO_MAP[String(v||'').toLowerCase().trim()] || String(v||'').trim();
 
 // ── INIT ──────────────────────────────────────────────────────
@@ -1484,10 +1392,6 @@ function goStep(n) {
     document.getElementById('step2-title').textContent = selectedOutput==='td'
       ? 'Archivos · Resumen de Tu Delivery'
       : 'Archivos · Extracto de Mercado Pago';
-    var ls=document.getElementById('lib-section'); if(ls) ls.style.display=selectedOutput==='extracto'?'block':'none';
-    var rs=document.getElementById('rules-section'); if(rs) rs.style.display=(selectedOutput==='td'||selectedOutput==='extracto'||selectedOutput==='svb')?'block':'none';
-    try{ loadRulesForModule(); }catch(e){ console.warn(e); }
-    setTimeout(function(){ var pf=document.getElementById('periodo-desde'); if(pf){ pf.addEventListener('input',checkReady); document.getElementById('periodo-hasta').addEventListener('input',checkReady); document.getElementById('saldo-inicial').addEventListener('input',checkReady); } }, 100);
     checkReady();
   }
   setStep(n);
@@ -1503,8 +1407,8 @@ function selectOutput(type) {
     document.getElementById('screen-1').classList.remove('active');
     var svbEl = document.getElementById('screen-svb');
     if(svbEl) svbEl.style.display='block';
+    try{ initSVB(); }catch(e){ console.warn('SVB init:', e); }
     [1,2,3].forEach(i => { document.getElementById('step-'+i).classList.remove('active','done'); });
-    try{ initSVB(); } catch(e){ console.warn('SVB init error:', e); }
     return;
   }
   selectedOutput=type;
@@ -1557,44 +1461,9 @@ function loadAccFile(f) {
   document.getElementById('acc-name').textContent=f.name;
   checkReady();
 }
-function onDropLib(e){ e.preventDefault(); offDrag('dz-lib'); loadLibFile(e.dataTransfer.files[0]); }
-function loadLib(e){ loadLibFile(e.target.files[0]); }
-function loadLibFile(f) {
-  if(!f) return; libFile=f;
-  document.getElementById('dz-lib').classList.add('loaded');
-  document.getElementById('lib-name').textContent=f.name;
-  checkReady();
-}
-function onSaldoManualChange() {
-  // If manual saldo entered, mark lib as satisfied
-  const manual = parseFloat(document.getElementById('saldo-final-manual').value) || 0;
-  if(manual > 0) {
-    document.getElementById('dz-lib').style.opacity = '0.5';
-  } else {
-    document.getElementById('dz-lib').style.opacity = '1';
-  }
-  checkReady();
-}
-
 function checkReady() {
-  try {
-  var hasExtractos = extractos.length > 0;
-  var hasAcc = !!accFile;
-  var libOk = true;
-  if(selectedOutput === 'extracto') {
-    var desdeEl = document.getElementById('periodo-desde');
-    var hastaEl = document.getElementById('periodo-hasta');
-    var saldoEl = document.getElementById('saldo-inicial');
-    var hasPeriodo = !!(desdeEl && desdeEl.value && hastaEl && hastaEl.value);
-    var hasSaldoInicial = !!(saldoEl && saldoEl.value);
-    var hasLib = !!libFile;
-    var manualEl = document.getElementById('saldo-final-manual');
-    var hasManual = !!(manualEl && parseFloat(manualEl.value) > 0);
-    libOk = hasPeriodo && hasSaldoInicial && (hasLib || hasManual);
-  }
-  var btnProcess = document.getElementById('btn-process');
-  if(btnProcess) btnProcess.disabled = !(hasExtractos && hasAcc && libOk);
-  } catch(e){ console.warn('checkReady error:', e); }
+  const ok = extractos.length>0 && !!accFile;
+  document.getElementById('btn-process').disabled=!ok;
 }
 
 // ── FILE READING ──────────────────────────────────────────────
@@ -1673,19 +1542,12 @@ function classifyRow(raw, country) {
   const detalleRaw = String(raw['DETALLE DE LA VENTA']||'');
   const detalle = cleanDet(detalleRaw);
   const detLC   = detalle.toLowerCase();
-  // TIPO DE OPERACIÓN: ARG comes as SETTLEMENT/REFUND directly, others in Spanish
-  const tipoOpRaw = String(raw['TIPO DE OPERACIÓN']||'').trim();
-  const tipoOp  = normTipoOp(tipoOpRaw) || tipoOpRaw; // keep original if no mapping
-  // MONEDA: ARG has MONEDA DE LA LIQUIDACIÓN separate, CHL/MEX have MONEDA
+  const tipoOp  = normTipoOp(raw['TIPO DE OPERACIÓN']||'');
   const moneda  = String(raw['MONEDA DE LA LIQUIDACIÓN']||raw['MONEDA']||'').trim();
-  // VALOR: some countries use negative for refunds
   const monto   = toNum(raw['VALOR DE LA COMPRA']);
   const comis   = toNum(raw['COMISIONES + IVA']);
   const imp     = toNum(raw['IMPUESTOS COBRADOS POR RETENCIONES DE IIBB']||0);
-  // FECHA: CHL has FECHA DE APROBACIÓN as 2nd column, ARG also has it
   const fecha   = getDate(raw['FECHA DE APROBACIÓN']||raw['FECHA DE ORIGEN']||'');
-  // FECHA DE LIBERACIÓN: column name varies
-  const fechaLibRaw = String(raw['FECHA DE LIBERACIÓN DEL DINERO']||raw['FECHA DE APROBACIÓN']||raw['FECHA DE ORIGEN']||'');
   const medio   = normMedio(raw['TIPO DE MEDIO DE PAGO']||raw['MEDIO DE PAGO']||'');
 
   let concept=null, dashId='', nombre='', warning='', detalleFact='';
@@ -1763,7 +1625,7 @@ function classifyRow(raw, country) {
   else if(String(raw['Tipo']||'').trim()==='SaaS') { concept='saas'; }
 
   // 7. Payouts
-  else if(tipoOp==='PAYOUTS'||tipoOp.toLowerCase()==='payouts'||String(raw['Tipo']||'').includes('PAYOUTS')){
+  else if(tipoOp==='PAYOUTS'||String(raw['Tipo']||'').includes('PAYOUTS')){
     concept='payout'; dashId='Payout - Validar cuenta'; detalleFact='Retiro a banco';
   }
 
@@ -1771,21 +1633,10 @@ function classifyRow(raw, country) {
   else if(numId.includes('MELIPAYMENTS')) concept='fee_contable';
   else if(numId.includes('::fee_payment')) concept='fee_dup';
 
-  // Fecha de liberacion — use the actual column if available, else calculate
-  let fechaLib = '';
-  const fechaLibFromFile = getDate(fechaLibRaw);
-  if(fechaLibFromFile && fechaLibFromFile !== fecha) {
-    // File has a real liberation date
-    fechaLib = fechaLibFromFile;
-    // Convert to dd/mm/yyyy
-    const flParts = fechaLib.split('-');
-    if(flParts.length===3) fechaLib = flParts[2]+'/'+flParts[1]+'/'+flParts[0];
-  } else {
-    // Calculate based on country
-    fechaLib = fecha;
-    if(concept==='paid_online') {
-      fechaLib = country==='MEX' ? addDaysToDateStr(fecha,12) : addDaysToDateStr(fecha,10);
-    }
+  // Fecha de liberacion
+  let fechaLib = fecha;
+  if(concept==='paid_online') {
+    fechaLib = country==='MEX' ? addDaysToDateStr(fecha,12) : addDaysToDateStr(fecha,10);
   }
 
   return {concept,dashId,nombre,warning,detalleFact,fechaLib,
@@ -1808,37 +1659,10 @@ async function process() {
   await loadCustomRules();
   setProgress(15,'Cargando accounts...');
   try {
-    accountsMap={}; libData=null;
+    accountsMap={};
     if(accFile){
       const rows = await readFileAsRows(accFile);
       accountsMap = buildAccountsMap(rows);
-    }
-    if(selectedOutput==='extracto'){
-      // Get periodo and saldo inicial
-      var periodoDesde = document.getElementById('periodo-desde').value;
-      var periodoHasta = document.getElementById('periodo-hasta').value;
-      var saldoInicialVal = parseFloat(document.getElementById('saldo-inicial').value) || 0;
-
-      if(libFile){
-        try {
-          var libRows = await readFileAsRows(libFile);
-          var totalRow = libRows.find(function(r){ return String(r['RECORD_TYPE']||'').toLowerCase()==='total'; });
-          var totalIdx = libRows.indexOf(totalRow);
-          if(totalRow && totalIdx > 0){
-            var prevRow = libRows[totalIdx-1];
-            var sf = parseFloat(String(totalRow['NET_CREDIT_AMOUNT']||'0').replace(',','.')) || 0;
-            var fd = String(prevRow['RELEASE_DATE']||'').split('T')[0];
-            var fp = fd.split('-'); var ffmt = fp.length===3 ? fp[2]+'/'+fp[1]+'/'+fp[0] : fd;
-            libData = {saldoFinal: sf, fecha: ffmt, periodoDesde: periodoDesde, periodoHasta: periodoHasta, saldoInicial: saldoInicialVal};
-          }
-        } catch(e){ console.warn('Error liberaciones:', e); }
-      } else {
-        // Use manual saldo
-        var manual = parseFloat(document.getElementById('saldo-final-manual').value) || 0;
-        if(manual > 0) {
-          libData = {saldoFinal: manual, fecha: periodoHasta.split('-').reverse().join('/'), periodoDesde: periodoDesde, periodoHasta: periodoHasta, saldoInicial: saldoInicialVal};
-        }
-      }
     }
     setProgress(20,'Leyendo extractos...');
     tdRows=[]; unclassRows=[]; allRows=[];
@@ -1886,28 +1710,6 @@ function renderResults() {
   }
   document.getElementById('result-content').innerHTML=html;
   renderUnclassified();
-  if(selectedOutput==='extracto' && libData){
-    var cc = document.getElementById('conciliacion-card');
-    if(cc) cc.remove();
-    var card = document.createElement('div');
-    card.id='conciliacion-card'; card.className='card'; card.style.marginTop='1rem';
-    card.innerHTML =
-      '<div class="card-title">Conciliacion de saldos</div>' +
-      '<div style="padding:10px 14px;background:var(--bg2);border-radius:8px;font-family:var(--mono);font-size:12px;margin-bottom:1rem">' +
-      'Período: <strong>' + (libData.periodoDesde||'—') + ' → ' + (libData.periodoHasta||'—') + '</strong>' +
-      '<span style="margin-left:16px">Saldo inicial: <strong>' + fmtN(libData.saldoInicial||0) + '</strong></span>' +
-      '</div>' +
-      '<div style="margin-bottom:1rem;padding:10px 14px;background:var(--bg2);border-radius:8px;font-family:var(--mono);font-size:12px;color:var(--text2)">' +
-        'Saldo final MP: <strong style="color:var(--text)">' + fmtN(libData.saldoFinal) + '</strong>' +
-        '<span style="margin-left:12px">Fecha: <strong style="color:var(--text)">' + libData.fecha + '</strong></span>' +
-      '</div>' +
-      '<button class="btn-primary" style="max-width:200px" onclick="calcularConciliacion()">Calcular</button>' +
-      '<div id="conciliacion-resultado" style="margin-top:1rem"></div>';
-    var uc = document.getElementById('unclass-card');
-    if(uc) uc.parentNode.insertBefore(card, uc);
-    else document.getElementById('result-content').appendChild(card);
-    calcularConciliacion();
-  }
 }
 
 function renderResumenTD(){
@@ -2032,339 +1834,87 @@ async function assignUnclass(i){
     `<span class="unclass-saved">✓ Guardado como ${CONCEPT_LABELS[sel]||sel}</span>`;
 }
 
-function calcularConciliacion() {
-  if(!libData) return;
-  var si  = libData.saldoInicial || 0;
-  var desde = libData.periodoDesde;
-  var hasta  = libData.periodoHasta;
-
-  function parseFechaLocal(f){
-    var p=f.split('/'); return p.length===3 ? new Date(p[2]+'-'+p[1]+'-'+p[0]) : new Date(f);
-  }
-  var desdeD = desde ? new Date(desde) : null;
-  var hastaD = hasta ? new Date(hasta) : null;
-  if(hastaD) hastaD.setHours(23,59,59);
-
-  function enPer(fechaLib){
-    if(!desdeD||!hastaD||!fechaLib) return true;
-    var d=parseFechaLocal(fechaLib); return d>=desdeD && d<=hastaD;
-  }
-
-  // Extracto = todos menos paid online, filtrado por fecha liberacion en periodo
-  var extractoRows = allRows.filter(function(r){
-    return r.concept !== 'paid_online' && enPer(r.fechaLib||r.fecha);
-  });
-  var sumExtracto = extractoRows.reduce(function(s,r){ return s+r.monto+r.comis; }, 0);
-  var saldoTeorico2 = si + sumExtracto;
-
-  // Determine cutoff day by country (MEX=12, ARG/CHL=10)
-  // Use first extracto row to detect country
-  var detectedCountry = allRows.length > 0 ? allRows[0].country : 'MEX';
-  var cutoffDays = detectedCountry === 'MEX' ? 12 : 10;
-  var hastaDay = hastaD ? hastaD.getDate() : 0;
-
-  var ajustePO = 0;
-  var ajusteLabel = '';
-
-  if(hastaDay <= cutoffDays) {
-    // Caso 1: antes del corte → restar paid online no liberado (fechaLib > hasta)
-    ajustePO = allRows.filter(function(r){
-      if(r.concept !== 'paid_online' || !r.fechaLib) return false;
-      var dLib = parseFechaLocal(r.fechaLib);
-      return hastaD && dLib > hastaD;
-    }).reduce(function(s,r){ return s+r.monto+r.comis; }, 0);
-    ajusteLabel = '- PO no liberado';
-    ajustePO = -ajustePO; // negative adjustment
-  } else {
-    // Caso 2: despues del corte → sumar paid online liberado entre dia (cutoff+1) y hasta
-    ajustePO = allRows.filter(function(r){
-      if(r.concept !== 'paid_online' || !r.fechaLib) return false;
-      var dLib = parseFechaLocal(r.fechaLib);
-      // liberado despues del corte del mes Y dentro del periodo
-      var cutoffDate = new Date(hastaD.getFullYear(), hastaD.getMonth(), cutoffDays);
-      return dLib > cutoffDate && dLib <= hastaD;
-    }).reduce(function(s,r){ return s+r.monto+r.comis; }, 0);
-    ajusteLabel = '+ PO liberado';
-    // positive adjustment
-  }
-
-  var teorico = saldoTeorico2 + ajustePO;
-  var diff    = libData.saldoFinal ? teorico - libData.saldoFinal : null;
-  var ok      = diff !== null && Math.abs(diff) < 0.02;
-  var okC     = ok ? 'var(--green)' : 'var(--red)';
-  var okBg    = ok ? 'var(--green-bg)' : 'var(--red-bg)';
-  var okBd    = ok ? 'var(--green-bd)' : 'rgba(226,75,74,.25)';
-
-  document.getElementById('conciliacion-resultado').innerHTML =
-    '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1rem">' +
-      '<div style="background:var(--bg2);border-radius:8px;padding:12px 14px">' +
-        '<div style="font-size:10px;color:var(--text2);font-family:var(--mono);text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px">Saldo inicial Odoo</div>' +
-        '<div style="font-size:18px;font-weight:500;font-family:var(--mono)">' + fmtN(si) + '</div>' +
-      '</div>' +
-      '<div style="background:var(--bg2);border-radius:8px;padding:12px 14px">' +
-        '<div style="font-size:10px;color:var(--text2);font-family:var(--mono);text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px">Extractos (sin paid online)</div>' +
-        '<div style="font-size:18px;font-weight:500;font-family:var(--mono)">' + fmtN(sumExtracto) + '</div>' +
-      '</div>' +
-      '<div style="background:var(--bg2);border-radius:8px;padding:12px 14px">' +
-        '<div style="font-size:10px;color:var(--text2);font-family:var(--mono);text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px">' + ajusteLabel + '</div>' +
-        '<div style="font-size:18px;font-weight:500;font-family:var(--mono);color:' + (ajusteLabel.includes('-')?'var(--red)':'var(--green)') + '">' + fmtN(Math.abs(ajustePO)) + '</div>' +
-      '</div>' +
-    '</div>' +
-    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">' +
-      '<div style="padding:16px;border-radius:10px;background:var(--navy-bg);border:0.5px solid rgba(57,56,160,.2)">' +
-        '<div style="font-size:11px;font-family:var(--mono);color:var(--navy);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Saldo final teorico</div>' +
-        '<div style="font-size:24px;font-weight:600;font-family:var(--mono);color:var(--navy)">' + fmtN(teorico) + '</div>' +
-      '</div>' +
-      '<div style="padding:16px;border-radius:10px;background:'+okBg+';border:0.5px solid '+okBd+'">' +
-        '<div style="font-size:11px;font-family:var(--mono);color:'+okC+';text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">' + (ok?'✅ Conciliado':'⚠ Diferencia') + '</div>' +
-        '<div style="font-size:24px;font-weight:600;font-family:var(--mono);color:'+okC+'">' + (ok?fmtN(libData.saldoFinal):fmtN(Math.abs(diff))) + '</div>' +
-        (ok?'':'<div style="font-size:11px;font-family:var(--mono);margin-top:4px;color:var(--red)">Saldo MP: '+fmtN(libData.saldoFinal)+'</div>') +
-      '</div>' +
-    '</div>';
-}
-
-
-// ── REGLAS DESPLEGABLE ────────────────────────────────────────
-var rulesCache = {};
-var rulesOpen = false;
-
-function getModuloForRules() {
-  if(selectedOutput==='td'||selectedOutput==='extracto') return 'mp';
-  if(selectedOutput==='svb') return 'svb';
-  if(selectedOutput==='dlocal') return 'dlocal';
-  return 'mp';
-}
-
-async function loadRulesForModule() {
-  var modulo = getModuloForRules();
-  if(rulesCache[modulo]) return; // already loaded
-  try {
-    var r = await fetch(GS_URL + '?modulo=' + modulo);
-    var d = await r.json();
-    rulesCache[modulo] = d.reglas || [];
-  } catch(e) { rulesCache[modulo] = []; }
-}
-
-function toggleRules() {
-  rulesOpen = !rulesOpen;
-  var btn = document.getElementById('rules-toggle-btn');
-  var dd  = document.getElementById('rules-dropdown');
-  btn.classList.toggle('open', rulesOpen);
-  dd.classList.toggle('open', rulesOpen);
-  if(rulesOpen) renderRulesTable();
-}
-
-function renderRulesTable() {
-  var modulo = getModuloForRules();
-  var loading = document.getElementById('rules-loading');
-  var table   = document.getElementById('rules-table');
-  var thead   = document.getElementById('rules-thead').querySelector('tr');
-  var tbody   = document.getElementById('rules-tbody');
-
-  if(!rulesCache[modulo]) {
-    loading.style.display='block'; table.style.display='none';
-    loadRulesForModule().then(renderRulesTable);
-    return;
-  }
-  var reglas = rulesCache[modulo];
-  if(!reglas.length) { loading.textContent='Sin reglas cargadas.'; loading.style.display='block'; table.style.display='none'; return; }
-  loading.style.display='none'; table.style.display='table';
-  var cols = Object.keys(reglas[0]).filter(k => k && k !== 'fecha');
-  thead.innerHTML = cols.map(c => '<th>'+c+'</th>').join('');
-  tbody.innerHTML = reglas.map(r => '<tr>' + cols.map(c => '<td>'+(r[c]||'—')+'</td>').join('') + '</tr>').join('');
-}
-
 // ── EXPORT ────────────────────────────────────────────────────
 function exportExcel(){
-  var wb = XLSX.utils.book_new();
-  var fecha = new Date().toISOString().split('T')[0];
-  var isTD = selectedOutput==='td';
+  const wb = XLSX.utils.book_new();
+  const fecha = new Date().toISOString().split('T')[0];
 
-  if(isTD){
-    // ── RESUMEN TU DELIVERY ──
-    var dataTD = tdRows.map(function(r){ return {
+  if(selectedOutput==='td'){
+    // ── RESUMEN TU DELIVERY ──────────────────────────────────
+    const data = tdRows.map(r=>({
       'TIPO DE DEUDA': (r.concept==='suscripcion'||r.concept==='deuda_comisiones')?'PAID_OFFLINE':'PAID_ONLINE',
-      'ID DE DASH': r.dashId||'',
+      'ID DE Dash': r.dashId||'',
       'FECHA DE PAGO': r.fecha,
       'OP MP': r.idOpMP,
       'MEDIO DE PAGO': r.medio,
       'ESTADO': r.tipoOp,
       'MONEDA': r.moneda,
       'IMPORTE LC C/IVA': r.monto,
-      'COMISION C/IVA': r.comis,
+      'COMISIÓN C/IVA': r.comis,
       'OTROS IMPUESTOS': r.imp,
-    };});
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(dataTD.length?dataTD:[{}]), 'Tu delivery');
+    }));
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(data.length?data:[{}]), 'Tu delivery');
 
-    // Resumen por pais
-    var resRows=[];
-    var countries=[...new Set(tdRows.map(function(r){return r.country;}))];
-    countries.forEach(function(pais){
-      var pRows=tdRows.filter(function(r){return r.country===pais;});
-      var ivaDiv=IVA[pais], fxRate=fx[CURRENCY[pais]], moneda=CURRENCY[pais];
-      var byTipo={};
-      pRows.forEach(function(r){
-        var tipo=(r.concept==='suscripcion'||r.concept==='deuda_comisiones')?'PAID_OFFLINE':'PAID_ONLINE';
+    // Resumen por país
+    const resRows=[];
+    const countries=[...new Set(tdRows.map(r=>r.country))];
+    countries.forEach(pais=>{
+      const pRows=tdRows.filter(r=>r.country===pais);
+      const ivaDiv=IVA[pais], fxRate=fx[CURRENCY[pais]], moneda=CURRENCY[pais];
+      const byTipo={};
+      pRows.forEach(r=>{
+        const tipo=(r.concept==='suscripcion'||r.concept==='deuda_comisiones')?'PAID_OFFLINE':'PAID_ONLINE';
         if(!byTipo[tipo])byTipo[tipo]={monto:0,comis:0,imp:0,count:0};
         byTipo[tipo].monto+=r.monto;byTipo[tipo].comis+=r.comis;byTipo[tipo].imp+=r.imp;byTipo[tipo].count++;
       });
-      var tipos = Object.keys(byTipo);
-      tipos.forEach(function(tipo){
-        var d=byTipo[tipo];
-        var tot=d.monto+d.comis+d.imp, sin=tot/ivaDiv;
-        var row = {'PAIS':pais,'MONEDA':moneda,'TIPO':tipo,'MOV':d.count,
-          'IMPORTE C/IVA':d.monto,'COMISION':d.comis,'OTROS IMP.':d.imp,'TOTAL C/IVA':tot};
-        row['TOTAL S/IVA ('+Math.round((ivaDiv-1)*100)+'%)'] = sin;
-        row['TOTAL USD'] = fxRate?sin/fxRate:'';
-        row['TC USD'] = fxRate||'';
-        row['FECHA TC'] = fecha;
-        resRows.push(row);
+      Object.entries(byTipo).forEach(([tipo,d])=>{
+        const tot=d.monto+d.comis+d.imp, sin=tot/ivaDiv;
+        resRows.push({'PAÍS':pais,'MONEDA':moneda,'TIPO':tipo,'MOV':d.count,
+          'IMPORTE C/IVA':d.monto,'COMISIÓN':d.comis,'OTROS IMP.':d.imp,'TOTAL C/IVA':tot,
+          ['TOTAL S/IVA ('+Math.round((ivaDiv-1)*100)+'%)']:sin,
+          'TOTAL USD':fxRate?sin/fxRate:'','TC USD':fxRate||'',
+          'FECHA TC':fecha});
       });
       resRows.push({});
     });
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(resRows.length?resRows:[{}]), 'Resumen');
 
-    // No clasificados
-    var allCols2=[]; var seen2=new Set();
-    unclassRows.forEach(function(r){Object.keys(r._raw).forEach(function(k){if(!seen2.has(k)&&!k.startsWith('_')){seen2.add(k);allCols2.push(k);}});});
-    var unc2=unclassRows.map(function(r){var o={'PAIS':r.country};allCols2.forEach(function(k){o[k]=r._raw[k]||'';});return o;});
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(unc2.length?unc2:[{nota:'Sin no clasificados'}]), 'No clasificados');
+    // No clasificados TD
+    const allCols=[]; const seen=new Set();
+    unclassRows.forEach(r=>Object.keys(r._raw).forEach(k=>{if(!seen.has(k)&&!k.startsWith('_')){seen.add(k);allCols.push(k);}}));
+    const unc=unclassRows.map(r=>{const o={'PAÍS':r.country};allCols.forEach(k=>{o[k]=r._raw[k]||'';});return o;});
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(unc.length?unc:[{nota:'Sin no clasificados'}]), 'No clasificados');
 
     XLSX.writeFile(wb, 'Resumen tu delivery_'+fecha+'.xlsx');
 
   } else {
-    // ── EXTRACTO DE MERCADO PAGO — 5 hojas ──
+    // ── PROCESAMIENTO DE EXTRACTOS ────────────────────────────
+    const data = allRows.map(r=>({
+      'FECHA DE APROBACIÓN': r.fecha,
+      'FECHA DE LIBERACIÓN': r.fechaLib||r.fecha,
+      'NÚMERO DE IDENTIFICACIÓN': r.numId||'',
+      'ID DE OPERACIÓN EN MERCADO PAGO': r.idOpMP,
+      'TIPO DE OPERACIÓN': r.tipoOp,
+      'MONEDA': r.moneda,
+      'VALOR DE LA COMPRA': r.monto,
+      'COMISIONES + IVA': r.comis,
+      'DETALLE DE LA VENTA': r.detalle||'',
+      'Type': (r.concept==='suscripcion'||r.concept==='deuda_comisiones')?'Paid offline':(CONCEPT_LABELS[r.concept]||r.concept||''),
+      'ID': r.dashId||'',
+      'Nombre': r.nombre||'',
+      'Detalle': r.detalleFact||'',
+    }));
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(data.length?data:[{}]), 'output');
 
-    // Parse periodo
-    var periodoDesde = libData ? libData.periodoDesde : '';
-    var periodoHasta = libData ? libData.periodoHasta : '';
-
-    function parseFechaLocal(f){
-      if(!f) return null;
-      var p=f.split('/');
-      if(p.length===3) return new Date(p[2]+'-'+p[1]+'-'+p[0]);
-      return new Date(f);
-    }
-    function parseFechaISO(f){
-      if(!f) return null;
-      return new Date(f);
-    }
-
-    var desdeD = periodoDesde ? parseFechaISO(periodoDesde) : null;
-    var hastaD = periodoHasta ? parseFechaISO(periodoHasta) : null;
-    if(hastaD) hastaD.setHours(23,59,59);
-
-    function enPeriodo(fechaLib){
-      if(!desdeD || !hastaD || !fechaLib) return true; // no filter if no period
-      var d = parseFechaLocal(fechaLib);
-      return d >= desdeD && d <= hastaD;
-    }
-
-    // Map row to output format
-    function toOutputRow(r){
-      return {
-        'FECHA DE APROBACION': r.fecha,
-        'FECHA DE LIBERACION': r.fechaLib||r.fecha,
-        'NUMERO DE IDENTIFICACION': r.numId||'',
-        'ID DE OPERACION EN MERCADO PAGO': r.idOpMP,
-        'TIPO DE OPERACION': r.tipoOp,
-        'MONEDA': r.moneda,
-        'VALOR DE LA COMPRA': r.monto,
-        'COMISIONES + IVA': r.comis,
-        'DETALLE DE LA VENTA': r.detalle||'',
-        'Type': (r.concept==='suscripcion'||r.concept==='deuda_comisiones')?'Paid offline':(CONCEPT_LABELS[r.concept]||r.concept||''),
-        'ID': r.dashId||'',
-        'Nombre': r.nombre||'',
-        'Detalle': r.detalleFact||'',
-      };
-    }
-
-    // Hoja 1: output — todos los movimientos
-    var dataOutput = allRows.map(toOutputRow);
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(dataOutput.length?dataOutput:[{}]), 'output');
-
-    // Hoja 2: Paid online — solo paid online
-    var dataPO = allRows.filter(function(r){return r.concept==='paid_online';}).map(toOutputRow);
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(dataPO.length?dataPO:[{}]), 'Paid online');
-
-    // Hoja 3: Extracto — todos EXCEPTO Paid online, filtrado por fecha de liberacion en periodo
-    function toExtractoRow(r){
-      return {
-        'FECHA DE APROBACION': r.fecha,
-        'NUMERO DE IDENTIFICACION': r.numId||'',
-        'ID DE OPERACION EN MERCADO PAGO': r.idOpMP,
-        'TIPO DE OPERACION': r.tipoOp,
-        'MONEDA': r.moneda,
-        'VALOR DE LA COMPRA': r.monto,
-        'COMISIONES + IVA': r.comis,
-        'DETALLE DE LA VENTA': r.detalle||'',
-        'Type': (r.concept==='suscripcion'||r.concept==='deuda_comisiones')?'Paid offline':(CONCEPT_LABELS[r.concept]||r.concept||''),
-        'ID': r.dashId||'',
-        'Nombre': r.nombre||'',
-        'Detalle': r.detalleFact||'',
-      };
-    }
-    var dataExtracto = allRows.filter(function(r){
-      return r.concept !== 'paid_online' && enPeriodo(r.fechaLib||r.fecha);
-    }).map(toExtractoRow);
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(dataExtracto.length?dataExtracto:[{}]), 'Extracto');
-
-    // Hoja 4: Calculo de saldos
-    var saldoInicial = libData ? (libData.saldoInicial||0) : 0;
-    // Extracto sum = todos menos paid online
-    var sumExtracto = dataExtracto.reduce(function(s,r){
-      return s + (parseFloat(r['VALOR DE LA COMPRA'])||0) + (parseFloat(r['COMISIONES + IVA'])||0);
-    }, 0);
-    var saldoTeorico = saldoInicial + sumExtracto;
-    // Determine cutoff by country
-    var exportCountry = allRows.length > 0 ? allRows[0].country : 'MEX';
-    var exportCutoff = exportCountry === 'MEX' ? 12 : 10;
-    var exportHastaDay = hastaD ? hastaD.getDate() : 0;
-    var exportAjustePO = 0;
-    var exportAjusteLabel = '';
-
-    if(exportHastaDay <= exportCutoff) {
-      exportAjustePO = -allRows.filter(function(r){
-        if(r.concept !== 'paid_online' || !r.fechaLib) return false;
-        var dLib = parseFechaLocal(r.fechaLib);
-        return hastaD && dLib > hastaD;
-      }).reduce(function(s,r){ return s+r.monto+r.comis; }, 0);
-      exportAjusteLabel = 'Paid online no liberado (-)';
-    } else {
-      exportAjustePO = allRows.filter(function(r){
-        if(r.concept !== 'paid_online' || !r.fechaLib) return false;
-        var dLib = parseFechaLocal(r.fechaLib);
-        var cutoffDate = new Date(hastaD.getFullYear(), hastaD.getMonth(), exportCutoff);
-        return dLib > cutoffDate && dLib <= hastaD;
-      }).reduce(function(s,r){ return s+r.monto+r.comis; }, 0);
-      exportAjusteLabel = 'Paid online liberado (+)';
-    }
-
-    var saldoTeoricoCorregido = saldoTeorico + exportAjustePO;
-    var saldoFinalMP = libData ? libData.saldoFinal : '';
-    var diff = saldoFinalMP !== '' ? saldoTeoricoCorregido - saldoFinalMP : '';
-    var calcRows = [
-      {'Concepto':'Saldo Inicial Odoo',            'Importe': saldoInicial},
-      {'Concepto':'Movimiento "Extractos"',        'Importe': sumExtracto},
-      {'Concepto':'Saldo final teorico',           'Importe': saldoTeorico},
-      {'Concepto': exportAjusteLabel,              'Importe': exportAjustePO},
-      {'Concepto':'Saldo final teorico corregido', 'Importe': saldoTeoricoCorregido},
-      {},
-      {'Concepto':'Saldo final MP (liberaciones)', 'Importe': saldoFinalMP},
-      {'Concepto':'Diferencia',                    'Importe': diff},
-    ];
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(calcRows), 'Calculo de saldos');
-
-    // Hoja 5: No clasificados
-    var allCols=[]; var seen=new Set();
-    unclassRows.forEach(function(r){Object.keys(r._raw).forEach(function(k){if(!seen.has(k)&&!k.startsWith('_')){seen.add(k);allCols.push(k);}});});
-    var unc=unclassRows.map(function(r){var o={'PAIS':r.country};allCols.forEach(function(k){o[k]=r._raw[k]||'';});return o;});
+    // No clasificados
+    const allCols=[]; const seen=new Set();
+    unclassRows.forEach(r=>Object.keys(r._raw).forEach(k=>{if(!seen.has(k)&&!k.startsWith('_')){seen.add(k);allCols.push(k);}}));
+    const unc=unclassRows.map(r=>{const o={'PAÍS':r.country};allCols.forEach(k=>{o[k]=r._raw[k]||'';});return o;});
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(unc.length?unc:[{nota:'Sin no clasificados'}]), 'No clasificados');
 
     XLSX.writeFile(wb, 'Extracto bancario_'+fecha+'.xlsx');
   }
 }
-
 
 // ── dLOCAL JS ────────────────────────────────────────────────────
 
@@ -2969,7 +2519,7 @@ function escapeHtml(s) {
 }
 
 // Wiring
-try{ ['drop-dlocal','drop-brl','drop-plantilla','drop-accountss'].forEach(id => setupDropzone(id)); }catch(e){ console.warn('dLocal init:', e); }
+['drop-dlocal','drop-brl','drop-plantilla','drop-accountss'].forEach(id => setupDropzone(id));
 
 document.getElementById('btn-procesar').addEventListener('click', async () => {
   const btn = document.getElementById('btn-procesar');
@@ -3041,13 +2591,11 @@ document.getElementById('reset-link').addEventListener('click', (e) => {
 });
 
 
-
 // ── SVB JS ────────────────────────────────────────────────────
 var svbInitialized = false;
 function initSVB() {
   if(svbInitialized) return;
   svbInitialized = true;
-  
 
 // ---------- Estado ----------
 let rawTransactions = [];
@@ -3431,7 +2979,7 @@ function setupDropzone(zoneId, inputId, nameId, multiple){
   const zone = document.getElementById(zoneId);
   const input = document.getElementById(inputId);
   const nameEl = document.getElementById(nameId);
-  if(!zone || !input || !nameEl) return; // elements not in DOM yet
+  if(!zone || !input || !nameEl) return;
   function updateLabel(){
     if (input.files && input.files.length){
       zone.classList.add('loaded');
@@ -3666,7 +3214,6 @@ document.getElementById('btnProcesar').addEventListener('click', async ()=>{
 document.getElementById('btnDescargar').addEventListener('click', generateCSV);
 
 renderRules();
-
 
 }
 </script>
