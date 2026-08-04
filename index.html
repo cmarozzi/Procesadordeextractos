@@ -2243,6 +2243,14 @@ document.getElementById('reset-link').addEventListener('click', (e) => {
   closeDlocal();
 });
 
+window.addEventListener('load', function() {
+  if(typeof XLSX === 'undefined') {
+    console.warn('XLSX no cargó - reintentando...');
+    var s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.19.3/xlsx.full.min.js';
+    document.head.appendChild(s);
+  }
+});
 </script>
 </body>
 </html>
