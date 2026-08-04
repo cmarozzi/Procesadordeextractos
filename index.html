@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Procesador de extractos</title>
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.19.3/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
@@ -718,13 +718,13 @@ table.data tr:hover td{background:var(--bg2);}
           <h3>Extracto de dLocal</h3>
           <p>Procesa los balances de dLocal y arroja el extracto para importar a Odoo.</p>
         </div>
-        <div class="menu-card" id="card-svb" onclick="window.open('https://cmarozzi.github.io/Procesadordeextractos/svb.html','_self')">
+        <div class="menu-card" id="card-svb" onclick="window.location.href='svb.html'">
           <span class="mc-icon">🏛</span>
           <h3>Extracto de SVB</h3>
           <p>Procesa el extracto de SVB, clasifica movimientos y genera el archivo para Odoo.</p>
         </div>
-        <div class="menu-card coming-soon" style="filter:blur(1.5px);pointer-events:none">
-          <span class="soon-badge">Próximamente</span>
+        <div class="menu-card coming-soon" style="filter:blur(1.5px);pointer-events:none;position:relative">
+          <span class="soon-badge" style="position:absolute;top:10px;right:10px;font-size:9px;font-family:var(--mono);background:var(--text3);color:white;padding:2px 6px;border-radius:4px;text-transform:uppercase">Próximamente</span>
           <span class="mc-icon">🅿️</span>
           <h3>Extracto de PayPal</h3>
           <p>Procesamiento de extractos de PayPal. En desarrollo.</p>
