@@ -1253,9 +1253,26 @@ function classifyRow(raw, country) {
     }
   }
 
+  // 4.5 SaaS (ARG)
+  else if(
+    detLC.includes('fudo - pago de suscripción de plan') ||
+    detLC.includes('fudo - pago de suscripcion de plan') ||
+    detLC.includes('suscripción plan - fudo') ||
+    detLC.includes('suscripcion plan - fudo') ||
+    numId.toLowerCase().includes('account_payment') ||
+    detLC.includes('abono mensual') || detLC.includes('abono trimestral') ||
+    detLC.includes('abono anual') || detLC.includes('abono semestral') ||
+    (numId.includes('@') && (detLC.includes('abono') || detLC.includes('mensual') || detLC.includes('trimestral') || detLC.includes('anual') || detLC.includes('semestral')))
+  ){
+    concept='saas';
+    // dashId: first segment before ::
+    dashId = numId.includes('::')?numId.split('::')[0]:numId;
+    detalleFact='Por facturar';
+  }
+
   // 5. Paid offline
   else if(
-    numId.includes('@') ||
+    (numId.includes('@') && (detLC.includes('suscripcion tu delivery') || detLC.includes('suscripción tu delivery') || detLC.includes('deuda'))) ||
     detLC.includes('suscripción tu delivery') || detLC.includes('suscripcion tu delivery') ||
     detLC.includes('deuda por comisiones') || detLC.includes('deuda de comisiones')
   ){
