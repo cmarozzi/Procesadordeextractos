@@ -1340,12 +1340,19 @@ async function process() {
     for(let i=0;i<extractos.length;i++){
       const {file,country}=extractos[i];
       const rows = await readFileAsRows(file);
-      rows.forEach(raw => {
-        const c = classifyRow(raw, country);
-        allRows.push(c);
-        if(c.concept==='paid_online'||c.concept==='suscripcion'||c.concept==='deuda_comisiones') tdRows.push(c);
-        if(c.concept===null) unclassRows.push(c);
-      });
+      // Process in chunks to avoid blocking UI
+      const CHUNK = 2000;
+      for(let ci=0; ci<rows.length; ci+=CHUNK) {
+        const chunk = rows.slice(ci, ci+CHUNK);
+        chunk.forEach(raw => {
+          const c = classifyRow(raw, country);
+          allRows.push(c);
+          if(c.concept==='paid_online'||c.concept==='suscripcion'||c.concept==='deuda_comisiones'||c.concept==='saas') tdRows.push(c);
+          if(c.concept===null) unclassRows.push(c);
+        });
+        // yield to browser every chunk
+        await new Promise(r => setTimeout(r, 0));
+      }
       setProgress(20+(i+1)/extractos.length*70,'Clasificando '+country+'...');
     }
     setProgress(95,'Armando resultado...');
