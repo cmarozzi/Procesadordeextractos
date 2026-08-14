@@ -370,7 +370,16 @@ let fx            = { ARS:null, CLP:null, MXN:null };
 // ══════════════════════════════════════════════════════════
 // UTILS
 // ══════════════════════════════════════════════════════════
-const toNum = v => { try { return parseFloat(String(v).replace(',','.')) || 0; } catch { return 0; } };
+const toNum = v => {
+  try {
+    const s = String(v).trim().replace(/\s/g,'');
+    if (!s || s === '-') return 0;
+    // Formato AR/EU: 1.234,56 → quita puntos de miles, cambia coma por punto
+    if (/^-?\d{1,3}(\.\d{3})*(,\d*)?$/.test(s)) return parseFloat(s.replace(/\./g,'').replace(',','.')) || 0;
+    // Formato estándar: 1234.56 o 1234,56
+    return parseFloat(s.replace(/,/g,'')) || 0;
+  } catch { return 0; }
+};
 
 const getDate = v => {
   if (!v) return '';
@@ -398,14 +407,23 @@ function applyFormats(ws) {
   }
 }
 
-// Normaliza el raw para el export MP: convierte strings ISO a Date, deja números como están
+// Columnas numéricas que deben salir como número (no string) en el export
+const NUM_COLS = new Set(['VALOR DE LA COMPRA','COMISIONES + IVA',
+  'IMPUESTOS COBRADOS POR RETENCIONES DE IIBB','MONTO DEVUELTO AL PAGADOR',
+  'TARIFA DE MERCADO PAGO','IMPUESTO A LAS GANANCIAS']);
+
+// Normaliza el raw para el export MP: convierte strings ISO a Date, columnas numéricas a número,
+// y omite la columna FECHA DE LIBERACIÓN DEL DINERO (ya la calculamos aparte, correctamente)
 const fmtRaw = raw => {
   const out = {};
   for (const [k, v] of Object.entries(raw)) {
+    if (k.toUpperCase().includes('FECHA DE LIBERACI') && k.toUpperCase().includes('DINERO')) continue;
     if (v instanceof Date) {
       out[k] = v;
     } else if (typeof v === 'string' && /^\d{4}-\d{2}-\d{2}[T ]/.test(v)) {
       out[k] = toDate(v) || v;
+    } else if (NUM_COLS.has(k)) {
+      out[k] = toNum(v);
     } else {
       out[k] = v;
     }
@@ -960,8 +978,9 @@ function exportExcel() {
     // ── Tu Delivery ──────────────────────────────────────
     const tdRows = allRows.filter(r => r.type === 'Paid online' || r.type === 'Paid offline');
 
+    const TD_TYPE = { 'Paid online':'PAID_ONLINE', 'Paid offline':'PAID_OFFLINE' };
     const data = tdRows.map(r => ({
-      'TIPO DE DEUDA'   : r.type,
+      'TIPO DE DEUDA'   : TD_TYPE[r.type] || r.type,
       'ID DE DASH'      : r.dashId,
       'FECHA DE PAGO'   : toDate(r.fecha),
       'OP MP'           : r.idOpMP,
