@@ -1226,6 +1226,41 @@ function exportOdoo() {
   applyFormats(wsPO);
   XLSX.utils.book_append_sheet(wb, wsPO, 'Paid online');
 
+  // ── Hoja Check saldo ─────────────────────────────────────
+  const wsChk = {};
+  const ck = (r, c, v, t, f, z) => {
+    const cell = { t: t || 's' };
+    if (f) cell.f = f;
+    else   cell.v = v !== undefined ? v : '';
+    if (z) cell.z = z;
+    wsChk[`${c}${r}`] = cell;
+  };
+  // Encabezados
+  ck(1,'A','Descripción'); ck(1,'B','Importe'); ck(1,'C','Concepto');
+  // Saldo inicial — el usuario completa el valor
+  ck(2,'A','Saldo inicial');
+  ck(2,'C','Sale del último extracto subido a Odoo');
+  // Movimientos
+  ck(3,'A','Movimientos');
+  ck(3,'B', null,'n','SUM(Extracto!E:F)','#,##0.00');
+  ck(3,'C','Suma de Importe + Comisiones de "Extracto"');
+  // Paid online
+  ck(4,'A','Paid online');
+  ck(4,'B', null,'n',"SUBTOTAL(9,'Paid online'!E:F)",'#,##0.00');
+  ck(4,'C','Si es AR/CL hasta el 10: "-" Paid online del último día que estás subiendo +1 hasta el 10 del mes (MEX: hasta el 12). Si ya pasó el 10/12: "+" Paid online liquidado pero no contabilizado.');
+  // Saldo final teórico
+  ck(5,'A','Saldo final teórico');
+  ck(5,'B', null,'n','SUM(B2:B4)','#,##0.00');
+  // Saldo liquidaciones — el usuario completa el valor
+  ck(7,'A','Saldo liquidaciones');
+  // Check
+  ck(8,'A','Check');
+  ck(8,'B', null,'n','B5-B7','#,##0.00');
+
+  wsChk['!ref']  = 'A1:C8';
+  wsChk['!cols'] = [{wch:22},{wch:16},{wch:75}];
+  XLSX.utils.book_append_sheet(wb, wsChk, 'Check saldo');
+
   XLSX.writeFile(wb, `extracto_odoo_${today}.xlsx`);
 }
 
