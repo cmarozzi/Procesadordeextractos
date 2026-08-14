@@ -1,0 +1,1193 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Procesador Financiero · Fudo</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --orange:#FF5023; --orange-bg:rgba(255,80,35,.09);
+  --navy:#3938A0;   --navy-bg:rgba(57,56,160,.09);
+  --green:#00a650;  --green-bg:rgba(0,166,80,.09);
+  --red:#e24b4a;    --red-bg:rgba(226,75,74,.09);
+  --amber:#BA7517;  --amber-bg:rgba(186,117,23,.09);
+  --purple:#7F3FBF; --purple-bg:rgba(127,63,191,.09);
+  --teal:#0096c8;   --teal-bg:rgba(0,150,200,.09);
+
+  --font:'Barlow',sans-serif;
+  --mono:'DM Mono',monospace;
+
+  --text:#3B3B3B; --text2:#6B6B6B; --text3:#9C9A92;
+  --bg:#ffffff; --bg2:#F5F4F0; --bg3:#eeedea;
+  --border:rgba(0,0,0,.08); --border2:rgba(0,0,0,.13);
+  --r:10px; --shadow:0 2px 12px rgba(0,0,0,.06);
+}
+
+body{font-family:var(--font);background:var(--bg2);color:var(--text);min-height:100vh;}
+
+/* ── TOPBAR ── */
+.topbar{background:var(--bg);border-bottom:.5px solid var(--border2);padding:0 2rem;display:flex;align-items:center;justify-content:space-between;height:56px;position:sticky;top:0;z-index:100;box-shadow:var(--shadow);}
+.topbar-left{display:flex;align-items:center;gap:10px;}
+.logo{width:30px;height:30px;flex-shrink:0;}
+.topbar h1{font-size:15px;font-weight:600;letter-spacing:-.01em;}
+.topbar-right{display:flex;align-items:center;gap:6px;}
+.tc-pill{font-size:11px;font-family:var(--mono);padding:3px 8px;border-radius:5px;background:var(--bg2);color:var(--text2);border:.5px solid var(--border2);}
+.tc-pill span{color:var(--text);font-weight:500;}
+.rules-badge{font-size:11px;font-family:var(--mono);padding:3px 8px;border-radius:5px;background:var(--navy-bg);color:var(--navy);border:.5px solid rgba(57,56,160,.2);}
+.sheet-link{font-size:11px;font-family:var(--mono);padding:3px 8px;border-radius:5px;background:var(--green-bg);color:var(--green);border:.5px solid rgba(0,166,80,.2);text-decoration:none;transition:opacity .15s;}
+.sheet-link:hover{opacity:.75;}
+
+/* ── LAYOUT ── */
+.main{max-width:1100px;margin:0 auto;padding:2rem 1.5rem;}
+
+/* ── STEPS ── */
+.steps{display:flex;align-items:center;margin-bottom:1.5rem;}
+.step-dot{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text3);font-family:var(--mono);}
+.step-dot .dot{width:24px;height:24px;border-radius:50%;border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;transition:all .2s;background:var(--bg);}
+.step-dot.active .dot{background:var(--orange);border-color:var(--orange);color:#fff;}
+.step-dot.done   .dot{background:var(--orange-bg);border-color:var(--orange);color:var(--orange);}
+.step-dot.active{color:var(--text);}
+.step-dot.done{color:var(--text2);}
+.step-line{flex:1;height:1px;background:var(--border2);margin:0 10px;}
+
+/* ── CARD ── */
+.card{background:var(--bg);border-radius:14px;border:.5px solid var(--border2);padding:1.5rem;margin-bottom:1.5rem;box-shadow:var(--shadow);}
+.card-title{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.07em;font-family:var(--mono);margin-bottom:1.25rem;}
+
+/* ── MENU ── */
+.menu-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.menu-card{border:1.5px solid var(--border2);border-radius:12px;padding:1.25rem;cursor:pointer;transition:all .15s;background:var(--bg2);position:relative;}
+.menu-card:hover:not(.coming-soon){border-color:var(--orange);background:var(--orange-bg);}
+.menu-card.selected{border-color:var(--orange);border-width:2px;background:var(--orange-bg);}
+.menu-card.coming-soon{opacity:.5;cursor:default;}
+.menu-card .mc-icon{font-size:26px;margin-bottom:10px;display:block;}
+.menu-card h3{font-size:14px;font-weight:600;margin-bottom:5px;}
+.menu-card p{font-size:12px;color:var(--text2);line-height:1.55;}
+.soon-badge{position:absolute;top:10px;right:10px;font-size:10px;font-family:var(--mono);padding:2px 8px;border-radius:4px;background:var(--bg3);color:var(--text3);border:.5px solid var(--border2);}
+
+/* ── UPLOAD ── */
+.upload-label{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;font-family:var(--mono);margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+.req{color:var(--red);font-size:10px;}
+.opt{color:var(--text3);font-size:10px;}
+.extracto-list{display:flex;flex-direction:column;gap:6px;margin-bottom:8px;}
+.extracto-item{display:flex;align-items:center;gap:8px;background:var(--bg2);border:.5px solid var(--border);border-radius:8px;padding:7px 12px;}
+.ext-country-sel{font-size:11px;padding:3px 8px;border-radius:5px;border:.5px solid var(--border2);background:var(--bg);color:var(--text);font-family:var(--mono);}
+.ext-name{font-size:12px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.ext-remove{font-size:14px;color:var(--text3);cursor:pointer;border:none;background:none;padding:2px 4px;}
+.ext-remove:hover{color:var(--red);}
+.add-file-btn{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--navy);cursor:pointer;padding:6px 0;border:none;background:none;font-family:var(--font);font-weight:500;}
+.dz{border:1.5px dashed var(--border2);border-radius:8px;padding:.9rem 1.1rem;cursor:pointer;transition:all .2s;background:var(--bg2);display:flex;align-items:center;gap:10px;position:relative;}
+.dz input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.dz:hover,.dz.over{border-color:var(--orange);background:var(--orange-bg);}
+.dz.loaded{border-color:var(--orange);border-style:solid;background:var(--orange-bg);}
+.dz-icon{font-size:20px;color:var(--text3);flex-shrink:0;}
+.dz.loaded .dz-icon{color:var(--orange);}
+.dz-name{font-size:12px;font-weight:500;color:var(--text2);}
+.dz.loaded .dz-name{color:var(--orange);}
+.dz-hint{font-size:11px;color:var(--text3);font-family:var(--mono);}
+.divider{height:.5px;background:var(--border2);margin:1.25rem 0;}
+
+/* ── BUTTONS ── */
+.btn-row{display:flex;gap:8px;margin-top:1.25rem;}
+.btn-primary{flex:1;padding:11px;background:var(--orange);color:#fff;border:none;border-radius:var(--r);font-size:13px;font-weight:600;font-family:var(--font);cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:7px;}
+.btn-primary:disabled{opacity:.35;cursor:not-allowed;}
+.btn-primary:not(:disabled):hover{background:#e04015;}
+.btn-secondary{padding:11px 18px;background:var(--bg);border:.5px solid var(--border2);border-radius:var(--r);font-size:13px;font-family:var(--font);cursor:pointer;color:var(--text2);display:flex;align-items:center;gap:6px;}
+.btn-secondary:hover{background:var(--bg2);}
+.btn-navy{padding:11px 20px;background:var(--navy);color:#fff;border:none;border-radius:var(--r);font-size:13px;font-weight:600;font-family:var(--font);cursor:pointer;display:flex;align-items:center;gap:7px;}
+.btn-navy:hover{background:#2d2c85;}
+
+/* ── PROGRESS ── */
+.progress-wrap{margin:1rem 0;}
+.progress-label{font-size:11px;color:var(--text2);font-family:var(--mono);margin-bottom:6px;}
+.progress-bar{height:4px;background:var(--bg3);border-radius:2px;overflow:hidden;}
+.progress-fill{height:100%;background:var(--orange);border-radius:2px;transition:width .3s;}
+
+/* ── INFO PILLS ── */
+.info-pills{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1.5rem;}
+.info-pill{font-size:11px;font-family:var(--mono);padding:4px 10px;border-radius:5px;background:var(--bg);color:var(--text2);border:.5px solid var(--border);box-shadow:var(--shadow);}
+.info-pill span{color:var(--text);font-weight:500;}
+
+/* ── PIVOT ── */
+.country-block{margin-bottom:1.5rem;}
+.country-header{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.country-badge{font-size:11px;font-family:var(--mono);font-weight:500;padding:3px 10px;border-radius:5px;}
+.cb-ARG{background:var(--navy-bg);color:var(--navy);}
+.cb-CHL{background:var(--green-bg);color:var(--green);}
+.cb-MEX{background:var(--amber-bg);color:var(--amber);}
+.mono-label{font-size:11px;color:var(--text3);font-family:var(--mono);}
+.tc-info{font-size:11px;color:var(--text3);font-family:var(--mono);margin-left:auto;}
+table.pivot{width:100%;border-collapse:collapse;}
+table.pivot th{padding:9px 12px;text-align:left;font-size:10px;font-family:var(--mono);font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:.04em;border-bottom:.5px solid var(--border2);background:var(--bg2);white-space:nowrap;}
+table.pivot th.num{text-align:right;}
+table.pivot td{padding:9px 12px;border-top:.5px solid var(--border);font-family:var(--mono);font-size:12px;white-space:nowrap;}
+table.pivot td.num{text-align:right;}
+table.pivot tr.total-row td{font-weight:600;background:var(--bg2);border-top:1.5px solid var(--border2);}
+.neg{color:var(--red);} .pos{color:var(--green);}
+
+/* ── DATA TABLE ── */
+.table-wrap{overflow:auto;max-height:360px;border:.5px solid var(--border);border-radius:8px;}
+table.data{width:100%;border-collapse:collapse;min-width:900px;}
+table.data th{padding:8px 12px;text-align:left;font-size:10px;font-family:var(--mono);font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:.04em;background:var(--bg2);position:sticky;top:0;white-space:nowrap;border-bottom:.5px solid var(--border2);}
+table.data th.num{text-align:right;}
+table.data td{padding:7px 12px;border-top:.5px solid var(--border);font-family:var(--mono);font-size:11.5px;white-space:nowrap;}
+table.data td.num{text-align:right;}
+table.data tr:hover td{background:var(--bg2);}
+
+/* ── BADGES ── */
+.badge{display:inline-block;padding:2px 7px;border-radius:4px;font-size:10px;font-family:var(--mono);font-weight:500;}
+.b-online  {background:var(--navy-bg);  color:var(--navy);}
+.b-offline {background:var(--orange-bg);color:var(--orange);}
+.b-saas    {background:var(--purple-bg);color:var(--purple);}
+.b-hardware{background:var(--green-bg); color:var(--green);}
+.b-smartpos{background:var(--amber-bg); color:var(--amber);}
+.b-payouts {background:var(--teal-bg);  color:var(--teal);}
+.b-supplier{background:rgba(0,0,0,.06);color:var(--text2);}
+.b-unclass {background:var(--red-bg);   color:var(--red);}
+
+/* ── UNCLASSIFIED ── */
+.unclass-item{background:var(--bg);border:.5px solid var(--border2);border-radius:8px;padding:12px;margin-bottom:8px;display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:10px;align-items:center;}
+.unclass-item.resolved{border-color:var(--orange);background:var(--orange-bg);}
+.unclass-field{font-size:11px;font-family:var(--mono);color:var(--text2);}
+.unclass-field strong{display:block;color:var(--text);font-size:12px;margin-bottom:2px;}
+.unclass-assign{display:flex;gap:6px;align-items:center;}
+.unclass-select{font-size:12px;padding:5px 8px;border-radius:6px;border:.5px solid var(--border2);background:var(--bg);color:var(--text);font-family:var(--font);flex:1;}
+.unclass-save-btn{padding:5px 12px;background:var(--orange);color:#fff;border:none;border-radius:6px;font-size:12px;cursor:pointer;white-space:nowrap;font-family:var(--font);font-weight:600;}
+.unclass-save-btn:hover{background:#e04015;}
+.unclass-saved{font-size:11px;color:var(--orange);font-family:var(--mono);}
+
+/* ── TOOLTIP ── */
+.tooltip-wrap{position:relative;display:inline-flex;align-items:center;gap:5px;}
+.tooltip-icon{width:16px;height:16px;border-radius:50%;background:var(--bg3);border:.5px solid var(--border2);color:var(--text3);font-size:10px;display:inline-flex;align-items:center;justify-content:center;cursor:help;flex-shrink:0;font-family:var(--mono);}
+.tooltip-box{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(100% + 8px);background:var(--text);color:var(--bg);font-size:11px;font-family:var(--font);line-height:1.5;padding:8px 12px;border-radius:8px;width:220px;pointer-events:none;opacity:0;transition:opacity .15s;z-index:50;white-space:normal;}
+.tooltip-box::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:5px solid transparent;border-top-color:var(--text);}
+.tooltip-icon:hover + .tooltip-box{opacity:1;}
+
+.screen{display:none;} .screen.active{display:block;}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="topbar-left">
+    <svg class="logo" viewBox="0 0 30 30" fill="none">
+      <rect width="30" height="30" rx="7" fill="#FF5023"/>
+      <text x="7" y="22" font-family="Barlow,sans-serif" font-weight="700" font-size="19" fill="white">F</text>
+    </svg>
+    <h1>Procesador Financiero · Fudo</h1>
+  </div>
+  <div class="topbar-right">
+    <div class="tc-pill">ARS <span id="tc-ars">—</span></div>
+    <div class="tc-pill">CLP <span id="tc-clp">—</span></div>
+    <div class="tc-pill">MXN <span id="tc-mxn">—</span></div>
+    <div class="rules-badge" id="rules-badge">⚡ 0 reglas</div>
+    <a class="sheet-link" id="sheet-link" href="" target="_blank" rel="noopener">📊 Reglas</a>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- STEPS -->
+  <div class="steps">
+    <div class="step-dot active" id="step-1"><div class="dot">1</div><span>¿Qué necesitás?</span></div>
+    <div class="step-line"></div>
+    <div class="step-dot" id="step-2"><div class="dot">2</div><span>Archivos</span></div>
+    <div class="step-line"></div>
+    <div class="step-dot" id="step-3"><div class="dot">3</div><span>Resultado</span></div>
+  </div>
+
+  <!-- STEP 1 -->
+  <div class="screen active" id="screen-1">
+    <div class="card">
+      <div class="card-title">¿Qué necesitás hoy?</div>
+      <div class="menu-grid">
+
+        <div class="menu-card" id="card-td" onclick="selectMode('td')">
+          <span class="mc-icon">📦</span>
+          <h3>Resumen Tu Delivery</h3>
+          <p>Paid online y Paid offline desde extractos MP. Pivot por país con tipo de cambio del día.</p>
+        </div>
+
+        <div class="menu-card" id="card-mp" onclick="selectMode('mp')">
+          <span class="mc-icon">📋</span>
+          <h3>Extracto Mercado Pago</h3>
+          <p>Clasifica todos los movimientos: Hardware Sales, SmartPos, SaaS, Payouts y más.</p>
+        </div>
+
+        <div class="menu-card" onclick="window.location.href='dlocal.html'" style="cursor:pointer;">
+          <span class="mc-icon">🌎</span>
+          <h3>Extracto dLocal</h3>
+          <p>Procesa extractos dLocal (Fudo + Brasil): comisiones, chargebacks y exportación para Odoo.</p>
+        </div>
+
+        <div class="menu-card" onclick="window.location.href='svb.html'" style="cursor:pointer;">
+          <span class="mc-icon">🏦</span>
+          <h3>Extracto SVB</h3>
+          <p>Clasificá movimientos bancarios SVB contra proveedores Odoo y reglas personalizadas.</p>
+        </div>
+
+        <div class="menu-card" onclick="window.location.href='banco-estado.html'" style="cursor:pointer;">
+          <span class="mc-icon">🇨🇱</span>
+          <h3>Extracto Banco Estado</h3>
+          <p>Clasifica cartolas de Banco Estado Chile: sueldos, proveedores, Previred, PAC Crédito y más.</p>
+        </div>
+
+        <div class="menu-card coming-soon">
+          <span class="soon-badge">Próximamente</span>
+          <span class="mc-icon">🅿️</span>
+          <h3>Extracto PayPal</h3>
+          <p>Procesamiento de extractos PayPal.</p>
+        </div>
+
+      </div>
+      <div class="btn-row">
+        <button class="btn-primary" id="btn-next-1" disabled onclick="goStep(2)">Continuar →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 2 -->
+  <div class="screen" id="screen-2">
+    <div class="card">
+      <div class="card-title" id="step2-title">Archivos</div>
+
+      <div class="upload-label">
+        Extractos de Mercado Pago <span class="req">requerido</span>
+        <span class="tooltip-wrap">
+          <span class="tooltip-icon">?</span>
+          <span class="tooltip-box">Reporte "Todas las transacciones" del portal de Mercado Pago. Podés cargar uno por país.</span>
+        </span>
+      </div>
+      <div class="extracto-list" id="extracto-list"></div>
+      <button class="add-file-btn" onclick="document.getElementById('ext-input').click()">＋ Agregar extracto</button>
+      <input type="file" id="ext-input" accept=".xlsx,.xls" style="display:none" onchange="onExtractoFile(event)">
+
+      <div class="divider"></div>
+
+      <div class="upload-label">
+        Accounts (Dash) <span id="acc-req-label" class="req">requerido</span>
+        <span class="tooltip-wrap">
+          <span class="tooltip-icon">?</span>
+          <span class="tooltip-box">CSV de cuentas exportado desde Dash. Necesario para resolver nombres e IDs de locales.</span>
+        </span>
+      </div>
+      <div class="dz" id="dz-acc" ondragover="onDrag(event,'dz-acc')" ondragleave="offDrag('dz-acc')" ondrop="onDropAcc(event)">
+        <input type="file" accept=".csv" onchange="loadAcc(event)">
+        <div class="dz-icon">🗄</div>
+        <div>
+          <div class="dz-name" id="acc-name">accounts_XXXXX.csv</div>
+          <div class="dz-hint">CSV</div>
+        </div>
+      </div>
+
+      <div class="progress-wrap" id="progress-wrap" style="display:none">
+        <div class="progress-label" id="progress-label">Procesando...</div>
+        <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn-secondary" onclick="goStep(1)">← Volver</button>
+        <button class="btn-primary" id="btn-process" disabled onclick="runProcess()">⚡ Procesar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 3 -->
+  <div class="screen" id="screen-3">
+    <div class="info-pills" id="info-pills"></div>
+    <div id="result-content"></div>
+
+    <div class="card" id="unclass-card" style="display:none">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+        <div class="card-title" style="margin:0;color:var(--red)">⚠ Sin clasificar</div>
+        <span style="font-size:11px;color:var(--text3);font-family:var(--mono)">Las reglas se guardan para próximas sesiones</span>
+      </div>
+      <div id="unclass-list"></div>
+    </div>
+
+    <div id="odoo-toggle" style="display:none;margin-top:1rem">
+      <label style="display:inline-flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;user-select:none">
+        <input type="checkbox" id="chk-odoo" onchange="toggleOdoo()" style="width:15px;height:15px;accent-color:var(--orange);cursor:pointer">
+        Extracto Odoo
+      </label>
+    </div>
+
+    <div class="btn-row" style="margin-top:1rem">
+      <button class="btn-secondary" onclick="goStep(2)">← Volver</button>
+      <button class="btn-navy" id="btn-export-mp" onclick="exportExcel()">⬇ Descargar Excel</button>
+      <button class="btn-navy" id="btn-export-odoo" onclick="exportOdoo()" style="display:none">⬇ Extracto Odoo</button>
+    </div>
+    <p style="font-size:11px;color:var(--text3);font-family:var(--mono);margin-top:8px;text-align:center" id="export-hint"></p>
+  </div>
+
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════
+// CONFIG — completar con las URLs de tu Google Sheet
+// ══════════════════════════════════════════════════════════
+const CONFIG = {
+  SHEETS_CSV_URL:  '',   // URL pública del CSV con las reglas custom
+  APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbwFwtGrCdvO3jSzL--WLRTZ-3SZctu6XMbFUJWrjM8Ar_qtCmIPPoqLORHf0xgKlKQm/exec',
+  SHEET_URL: 'https://docs.google.com/spreadsheets/d/1xZgjk9FwWUFL-S0TVuc6aWqbXv_D2vlx0cX0n0Jw6ko/edit#gid=0',
+};
+
+// ══════════════════════════════════════════════════════════
+// CONSTANTS
+// ══════════════════════════════════════════════════════════
+const IVA      = { ARG:1.21, CHL:1.19, MEX:1.16 };
+const CURRENCY = { ARG:'ARS', CHL:'CLP', MEX:'MXN' };
+
+const TYPE_BADGE = {
+  'Paid online'      : 'b-online',
+  'Paid offline'     : 'b-offline',
+  'SaaS'             : 'b-saas',
+  'Hardware Sales'   : 'b-hardware',
+  'SmartPos Sales'   : 'b-smartpos',
+  'Payouts'          : 'b-payouts',
+  'Payout'           : 'b-payouts',
+  'Payin'            : 'b-online',
+  'Supplier payments': 'b-supplier',
+};
+
+// ══════════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════════
+let selectedMode  = null;
+let extractos     = [];
+let accFile       = null;
+let allRows       = [];
+let customRules   = [];
+let accounts      = { byName:{}, byId:{} };
+let fx            = { ARS:null, CLP:null, MXN:null };
+
+// ══════════════════════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════════════════════
+const toNum = v => { try { return parseFloat(String(v).replace(',','.')) || 0; } catch { return 0; } };
+
+const getDate = v => {
+  if (!v) return '';
+  if (v instanceof Date) return v.toISOString().split('T')[0];
+  return String(v).split('T')[0].split(' ')[0];
+};
+
+// Convierte cualquier valor a Date nativo (para celdas fecha en Excel)
+const toDate = v => {
+  if (!v) return null;
+  if (v instanceof Date) return v;
+  const iso = String(v).split('T')[0];
+  const p = iso.split('-');
+  if (p.length === 3) return new Date(Date.UTC(+p[0], +p[1]-1, +p[2]));
+  return null;
+};
+
+// Aplica formato fecha dd/mm/yyyy y número #,##0.00 a todas las celdas de un worksheet
+function applyFormats(ws) {
+  for (const addr in ws) {
+    if (addr[0] === '!') continue;
+    const cell = ws[addr];
+    if (cell.t === 'd') cell.z = 'DD/MM/YYYY';
+    if (cell.t === 'n') cell.z = '#,##0.00';
+  }
+}
+
+// Normaliza el raw para el export MP: convierte strings ISO a Date, deja números como están
+const fmtRaw = raw => {
+  const out = {};
+  for (const [k, v] of Object.entries(raw)) {
+    if (v instanceof Date) {
+      out[k] = v;
+    } else if (typeof v === 'string' && /^\d{4}-\d{2}-\d{2}[T ]/.test(v)) {
+      out[k] = toDate(v) || v;
+    } else {
+      out[k] = v;
+    }
+  }
+  return out;
+};
+
+const cleanStr = v => String(v||'').replace(/"""/g,'').replace(/"/g,'').trim();
+
+const fmtN = (n,d=2) => {
+  const x = parseFloat(n);
+  return isNaN(x) ? '—' : x.toLocaleString('es-AR',{minimumFractionDigits:d,maximumFractionDigits:d});
+};
+
+// CSV parser — handles quoted fields with commas inside
+function parseCSVLine(line) {
+  const result = []; let cur = '', inQ = false;
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i];
+    if (c === '"') {
+      if (inQ && line[i+1] === '"') { cur += '"'; i++; }
+      else inQ = !inQ;
+    } else if (c === ',' && !inQ) { result.push(cur); cur = ''; }
+    else cur += c;
+  }
+  result.push(cur);
+  return result;
+}
+
+// Normalize TIPO DE OPERACIÓN → English
+function normTipoOp(v) {
+  const s = String(v||'').toLowerCase().trim();
+  if (s === 'pago aprobado')                                         return 'SETTLEMENT';
+  if (s === 'devolución de dinero' || s === 'devolucion de dinero') return 'REFUND';
+  if (s === 'contracargo')                                           return 'CHARGEBACK';
+  return String(v||'').toUpperCase().trim();
+}
+
+// Normalize MEDIO DE PAGO → English
+function normMedio(v) {
+  const map = {
+    'tarjeta de crédito'  : 'credit_card',
+    'tarjeta de credito'  : 'credit_card',
+    'tarjeta de débito'   : 'debit_card',
+    'tarjeta de debito'   : 'debit_card',
+    'transferencia bancaria':'bank_transfer',
+    'moneda digital'      : 'digital_currency',
+    'cupón de pago'       : 'coupon',
+    'cupon de pago'       : 'coupon',
+  };
+  return map[String(v||'').toLowerCase().trim()] || String(v||'').trim();
+}
+
+// ══════════════════════════════════════════════════════════
+// FX MODULE
+// ══════════════════════════════════════════════════════════
+async function fetchFX() {
+  try {
+    const d = await (await fetch('https://api.exchangerate-api.com/v4/latest/USD')).json();
+    fx.ARS = d.rates.ARS; fx.CLP = d.rates.CLP; fx.MXN = d.rates.MXN;
+    document.getElementById('tc-ars').textContent = fx.ARS ? fx.ARS.toFixed(0)  : '—';
+    document.getElementById('tc-clp').textContent = fx.CLP ? fx.CLP.toFixed(0)  : '—';
+    document.getElementById('tc-mxn').textContent = fx.MXN ? fx.MXN.toFixed(2)  : '—';
+  } catch(e) { /* silent */ }
+}
+
+// ══════════════════════════════════════════════════════════
+// ACCOUNTS MODULE
+// Detects header row dynamically — compatible with any filter
+// ══════════════════════════════════════════════════════════
+function parseAccounts(csvText) {
+  const text  = csvText.replace(/^﻿/, '');          // strip BOM
+  const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+
+  let idCol = -1, nameCol = -1, headerIdx = -1;
+
+  // Scan up to first 10 lines to find the header
+  for (let i = 0; i < Math.min(lines.length, 10); i++) {
+    const cols  = parseCSVLine(lines[i]).map(c => c.trim());
+    const lower = cols.map(c => c.toLowerCase());
+    const iId   = lower.findIndex(c => c === 'id');
+    const iName = lower.findIndex(c => c.startsWith('nombre'));
+    if (iId !== -1 && iName !== -1) { headerIdx = i; idCol = iId; nameCol = iName; break; }
+  }
+
+  if (headerIdx === -1) return { byName:{}, byId:{} };
+
+  const byName = {}, byId = {};
+  for (let i = headerIdx + 1; i < lines.length; i++) {
+    const cols  = parseCSVLine(lines[i]).map(c => c.trim());
+    const id    = cols[idCol];
+    const nombre = cols[nameCol];
+    if (!id || !nombre) continue;
+    const key = nombre.toLowerCase().replace(/\s+/g,'');
+    byName[key] = { id, nombre };
+    byId[id]    = { nombre };
+  }
+
+  return { byName, byId };
+}
+
+// ══════════════════════════════════════════════════════════
+// RULES MODULE (Google Sheets backend)
+// ══════════════════════════════════════════════════════════
+async function loadCustomRules() {
+  if (!CONFIG.SHEETS_CSV_URL) { customRules = []; updateRulesBadge(); return; }
+  try {
+    const text  = await (await fetch(CONFIG.SHEETS_CSV_URL)).text();
+    const clean = text.replace(/^﻿/, '');
+    const lines = clean.split('\n').filter(Boolean);
+    if (lines.length < 2) { customRules = []; updateRulesBadge(); return; }
+    const hdrs = parseCSVLine(lines[0]).map(h => h.toLowerCase().trim());
+    customRules = lines.slice(1).map(l => {
+      const cols = parseCSVLine(l);
+      const obj  = {};
+      hdrs.forEach((h,i) => obj[h] = (cols[i]||'').trim());
+      return obj;
+    }).filter(r => r.patron);
+  } catch(e) {
+    console.warn('Reglas no disponibles:', e);
+    customRules = [];
+  }
+  updateRulesBadge();
+}
+
+async function saveCustomRule(patron, campo, concepto, pais, notas) {
+  if (!CONFIG.APPS_SCRIPT_URL) return false;
+  try {
+    await fetch(CONFIG.APPS_SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({ patron, campo, concepto, pais, notas }),
+    });
+    await loadCustomRules();
+    return true;
+  } catch(e) { console.warn('No se pudo guardar regla:', e); return false; }
+}
+
+function applyCustomRules(numId, detalle, tipoOp, country) {
+  for (const rule of customRules) {
+    if (rule.pais && rule.pais !== country) continue;
+    const hay = rule.campo === 'num_id'   ? numId   :
+                rule.campo === 'tipo_op'  ? tipoOp  : detalle;
+    if (hay.toLowerCase().includes(rule.patron.toLowerCase())) return rule.concepto;
+  }
+  return null;
+}
+
+function updateRulesBadge() {
+  document.getElementById('rules-badge').textContent = `⚡ ${customRules.length} reglas`;
+}
+
+// ══════════════════════════════════════════════════════════
+// CLASSIFICATION — single pass, 9 priority rules
+// ══════════════════════════════════════════════════════════
+function classifyRow(raw, country) {
+  // ── Extract & normalize raw values ──────────────────────
+  const numId   = String(raw['NÚMERO DE IDENTIFICACIÓN']||'').trim();
+  const idOpMP  = String(raw['ID DE OPERACIÓN EN MERCADO PAGO']||'').trim();
+  const detalle = cleanStr(raw['DETALLE DE LA VENTA']||'');
+  const detLC   = detalle.toLowerCase();
+  const tipoOp  = normTipoOp(raw['TIPO DE OPERACIÓN']||'');
+  const medio   = normMedio(raw['TIPO DE MEDIO DE PAGO']||raw['MEDIO DE PAGO']||'');
+  const moneda  = String(raw['MONEDA DE LA LIQUIDACIÓN']||raw['MONEDA']||'').trim();
+  const monto   = toNum(raw['VALOR DE LA COMPRA']);
+  const comis   = toNum(raw['COMISIONES + IVA']);
+  const imp     = toNum(raw['IMPUESTOS COBRADOS POR RETENCIONES DE IIBB']||0);
+  const fecha   = getDate(raw['FECHA DE APROBACIÓN']||raw['FECHA DE ORIGEN']||'');
+
+  let type = null, dashId = '', nombre = '';
+
+  // ── 0. Custom rules (highest priority) ──────────────────
+  const custom = applyCustomRules(numId, detalle, tipoOp, country);
+  if (custom) {
+    type = custom;
+    // Fall through to dashId/nombre resolution below
+  }
+
+  // ── 1. Hardware Sales ────────────────────────────────────
+  else if (detLC.includes('hardware')) {
+    type = 'Hardware Sales';
+  }
+
+  // ── 2. SmartPos Sales ────────────────────────────────────
+  else if (numId.startsWith('TFP:') || detLC.startsWith('tfp:') ||
+           detLC.includes('terminal fudo') || detLC.includes(' tfp') || detLC.includes('tpf:')) {
+    type = 'SmartPos Sales';
+    if (numId.startsWith('TFP:'))        dashId = (numId.split(':')[1] || '').trim();
+    else if (detLC.startsWith('tfp:'))   dashId = (detLC.split(':')[1] || '').trim();
+    if (dashId) { const m = accounts.byId[dashId]; if (m) { nombre = m.nombre; } }
+  }
+
+  // ── 3. Payouts ───────────────────────────────────────────
+  else if (tipoOp === 'PAYOUTS') {
+    type = 'Payouts';
+  }
+
+  // ── 4. Supplier payments ─────────────────────────────────
+  else if (numId.toUpperCase().includes('MELIPAYMENTS')) {
+    type = 'Supplier payments';
+  }
+
+  // ── 5. Paid offline — Deuda comisiones ──────────────────
+  else if (detLC.includes('deuda por comisiones') || detLC.includes('deuda de comisiones')) {
+    type = 'Paid offline';
+    if (numId.includes('@')) {
+      const afterAt = numId.split('@')[1].toLowerCase().replace(/\s+/g,'');
+      const match   = accounts.byName[afterAt];
+      if (match) { dashId = match.id; nombre = match.nombre; }
+      else        { dashId = '';      nombre = `⚠ ${afterAt}`; }
+    }
+  }
+
+  // ── 6. Paid offline — Suscripción Tu Delivery / fee_payment
+  else if (detLC.includes('suscripción tu delivery') || detLC.includes('suscripcion tu delivery') ||
+           numId.includes('::fee_payment')) {
+    type   = 'Paid offline';
+    dashId = numId.includes('::') ? numId.split('::')[0] : numId;
+    const match = accounts.byId[dashId];
+    if (match) nombre = match.nombre;
+  }
+
+  // ── 7. SaaS ──────────────────────────────────────────────
+  else if (
+    detLC.includes('abono mensual')     || detLC.includes('abono trimestral')  ||
+    detLC.includes('abono semestral')   || detLC.includes('abono anual')       ||
+    detLC.includes('fudo - pago de suscripción de plan')  ||
+    detLC.includes('fudo - pago de suscripcion de plan')  ||
+    detLC.includes('suscripción plan - fudo')             ||
+    detLC.includes('suscripcion plan - fudo')             ||
+    (numId.includes('@') && (detLC.startsWith('suscripci') || detLC.startsWith('abono')) && !detLC.includes('tu delivery'))
+  ) {
+    type = 'SaaS';
+    if (numId.includes('@')) {
+      const afterAt = numId.split('@')[1].toLowerCase().replace(/\s+/g,'');
+      const match   = accounts.byName[afterAt];
+      if (match) { dashId = match.id; nombre = match.nombre; }
+    } else {
+      dashId = numId.includes('::') ? numId.split('::')[0] : '';
+      if (dashId) {
+        const match = accounts.byId[dashId];
+        if (match) nombre = match.nombre;
+      }
+    }
+  }
+
+  // ── 8. Paid online ───────────────────────────────────────
+  else if (numId.startsWith('FUDO-')) {
+    type   = 'Paid online';
+    dashId = numId.split('-')[1] || '';      // FUDO-{dashId}-{orderId}
+    const match = accounts.byId[dashId];
+    if (match) nombre = match.nombre;
+  }
+
+  // ── 9. Unclassified — type stays null ───────────────────
+
+  return { type, dashId, nombre, numId, idOpMP, detalle, tipoOp, medio, moneda, monto, comis, imp, fecha, country, _raw:raw };
+}
+
+// ══════════════════════════════════════════════════════════
+// FILE READERS
+// ══════════════════════════════════════════════════════════
+async function readXLSX(file) {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = e => {
+      try {
+        const wb  = XLSX.read(new Uint8Array(e.target.result), { type:'array', cellDates:true });
+        const out = {};
+        wb.SheetNames.forEach(n => { out[n] = XLSX.utils.sheet_to_json(wb.Sheets[n], { defval:'' }); });
+        res(out);
+      } catch(err) { rej(err); }
+    };
+    r.onerror = () => rej(new Error('No se pudo leer ' + file.name));
+    r.readAsArrayBuffer(file);
+  });
+}
+
+async function readTextFile(file) {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = e => res(e.target.result);
+    r.onerror = () => rej(new Error('No se pudo leer ' + file.name));
+    r.readAsText(file, 'utf-8');
+  });
+}
+
+// ══════════════════════════════════════════════════════════
+// MAIN PROCESSOR
+// ══════════════════════════════════════════════════════════
+async function runProcess() {
+  document.getElementById('btn-process').disabled = true;
+  document.getElementById('btn-process').textContent = 'Procesando...';
+
+  try {
+    setProgress(5, 'Actualizando tipo de cambio...');
+    await fetchFX();
+
+    setProgress(10, 'Cargando reglas...');
+    await loadCustomRules();
+
+    setProgress(15, 'Cargando accounts...');
+    accounts = { byName:{}, byId:{} };
+    if (accFile) {
+      const text = await readTextFile(accFile);
+      accounts   = parseAccounts(text);
+    }
+
+    setProgress(20, 'Leyendo extractos...');
+    allRows = [];
+    const total = extractos.length;
+
+    for (let i = 0; i < total; i++) {
+      const { file, country } = extractos[i];
+      const sheets    = await readXLSX(file);
+      const sheetName = Object.keys(sheets).find(s =>
+        s.toLowerCase() === 'sheet0' || s.toLowerCase() === 'procesado'
+      ) || Object.keys(sheets)[0];
+      const rawRows = sheets[sheetName];
+
+      // Process in 1 000-row chunks — yields to UI between chunks
+      const CHUNK = 1000;
+      for (let j = 0; j < rawRows.length; j += CHUNK) {
+        allRows.push(...rawRows.slice(j, j + CHUNK).map(raw => classifyRow(raw, country)));
+        const pct = 20 + ((i + (j + CHUNK) / rawRows.length) / total) * 65;
+        setProgress(
+          Math.min(pct, 85),
+          `Clasificando ${country}… ${Math.min(j + CHUNK, rawRows.length).toLocaleString('es-AR')} / ${rawRows.length.toLocaleString('es-AR')}`
+        );
+        await new Promise(r => setTimeout(r, 0));   // yield
+      }
+    }
+
+    setProgress(90, 'Armando resultado...');
+    await new Promise(r => setTimeout(r, 0));
+    renderResults();
+    goStep(3);
+    setProgress(100, '✓ Listo');
+    setTimeout(() => document.getElementById('progress-wrap').style.display = 'none', 800);
+
+  } catch(err) {
+    alert('Error: ' + err.message);
+    console.error(err);
+  }
+
+  document.getElementById('btn-process').disabled = false;
+  document.getElementById('btn-process').textContent = '⚡ Procesar';
+}
+
+// ══════════════════════════════════════════════════════════
+// RENDER RESULTS
+// ══════════════════════════════════════════════════════════
+function renderResults() {
+  const unclassRows = allRows.filter(r => r.type === null);
+
+  // ── Info pills ──────────────────────────────────────────
+  const counts = {};
+  allRows.forEach(r => { const k = r.type || '__unclass__'; counts[k] = (counts[k]||0) + 1; });
+
+  let pillsHtml = `<div class="info-pill">Total <span>${allRows.length.toLocaleString('es-AR')}</span></div>`;
+
+  if (selectedMode === 'td') {
+    pillsHtml += `<div class="info-pill">Paid online  <span>${(counts['Paid online'] ||0).toLocaleString('es-AR')}</span></div>`;
+    pillsHtml += `<div class="info-pill">Paid offline <span>${(counts['Paid offline']||0).toLocaleString('es-AR')}</span></div>`;
+  } else {
+    const order = ['Paid online','Paid offline','SaaS','Hardware Sales','SmartPos Sales','Payouts','Payout','Payin','Supplier payments'];
+    order.forEach(k => {
+      if (counts[k]) pillsHtml += `<div class="info-pill">${k} <span>${counts[k].toLocaleString('es-AR')}</span></div>`;
+    });
+  }
+  if (unclassRows.length) {
+    pillsHtml += `<div class="info-pill">Sin clasificar <span style="color:var(--red)">${unclassRows.length}</span></div>`;
+  }
+  document.getElementById('info-pills').innerHTML = pillsHtml;
+
+  // ── Content ─────────────────────────────────────────────
+  let html = '';
+  if (selectedMode === 'td') {
+    const tdRows = allRows.filter(r => r.type === 'Paid online' || r.type === 'Paid offline');
+    html += renderPivot(tdRows);
+    html += renderPreviewTable(tdRows, 'Vista previa · Tu Delivery', false);
+    document.getElementById('export-hint').textContent = 'Excel con hojas: Datos · Pivot';
+    document.getElementById('unclass-card').style.display = 'none';
+  } else {
+    html += renderPreviewTable(allRows, 'Extracto Mercado Pago completo', true);
+    document.getElementById('export-hint').textContent = 'Excel con hojas: Datos · No clasificados';
+    document.getElementById('odoo-toggle').style.display = 'block';
+    document.getElementById('chk-odoo').checked = false;
+    document.getElementById('btn-export-mp').style.display   = '';
+    document.getElementById('btn-export-odoo').style.display = 'none';
+    renderUnclassified(unclassRows);
+  }
+  document.getElementById('result-content').innerHTML = html;
+}
+
+// ── Pivot table (Tu Delivery) ────────────────────────────
+function renderPivot(rows) {
+  const countries = [...new Set(rows.map(r => r.country))];
+  const cbClass   = { ARG:'cb-ARG', CHL:'cb-CHL', MEX:'cb-MEX' };
+  let html = '<div class="card"><div class="card-title">Pivot por país</div>';
+
+  countries.forEach(country => {
+    const cRows  = rows.filter(r => r.country === country);
+    const moneda = CURRENCY[country], ivaDiv = IVA[country], fxRate = fx[moneda];
+    const byType = {};
+    cRows.forEach(r => {
+      if (!byType[r.type]) byType[r.type] = { monto:0, comis:0, imp:0, count:0 };
+      byType[r.type].monto  += r.monto;
+      byType[r.type].comis  += r.comis;
+      byType[r.type].imp    += r.imp;
+      byType[r.type].count++;
+    });
+    const totM = cRows.reduce((s,r) => s+r.monto, 0);
+    const totC = cRows.reduce((s,r) => s+r.comis, 0);
+    const totI = cRows.reduce((s,r) => s+r.imp, 0);
+    const totT = totM+totC+totI, totS = totT/ivaDiv;
+
+    html += `<div class="country-block">
+      <div class="country-header">
+        <span class="country-badge ${cbClass[country]}">${country}</span>
+        <span class="mono-label">${moneda}</span>
+        ${fxRate ? `<span class="tc-info">TC 1 USD = ${fmtN(fxRate,2)} ${moneda}</span>` : ''}
+      </div>
+      <table class="pivot"><thead><tr>
+        <th>Tipo</th><th class="num">Movimientos</th>
+        <th class="num">Importe c/IVA</th><th class="num">Comisión</th><th class="num">Otros imp.</th>
+        <th class="num">Total c/IVA</th>
+        <th class="num">Total s/IVA (${Math.round((ivaDiv-1)*100)}%)</th>
+        <th class="num">Total USD</th>
+      </tr></thead><tbody>`;
+
+    Object.entries(byType).forEach(([type, d]) => {
+      const tot = d.monto+d.comis+d.imp, sin = tot/ivaDiv, usd = fxRate ? sin/fxRate : null;
+      html += `<tr>
+        <td><span class="badge ${TYPE_BADGE[type]||''}">${type}</span></td>
+        <td class="num">${d.count.toLocaleString('es-AR')}</td>
+        <td class="num">${fmtN(d.monto)}</td>
+        <td class="num ${d.comis<0?'neg':''}">${d.comis!==0?fmtN(d.comis):'—'}</td>
+        <td class="num ${d.imp<0?'neg':''}">${d.imp!==0?fmtN(d.imp):'—'}</td>
+        <td class="num">${fmtN(tot)}</td>
+        <td class="num">${fmtN(sin)}</td>
+        <td class="num">${usd!==null?fmtN(usd):'—'}</td>
+      </tr>`;
+    });
+
+    html += `<tr class="total-row">
+      <td>Total ${country}</td>
+      <td class="num">${cRows.length.toLocaleString('es-AR')}</td>
+      <td class="num">${fmtN(totM)}</td>
+      <td class="num ${totC<0?'neg':''}">${totC!==0?fmtN(totC):'—'}</td>
+      <td class="num ${totI<0?'neg':''}">${totI!==0?fmtN(totI):'—'}</td>
+      <td class="num">${fmtN(totT)}</td>
+      <td class="num pos">${fmtN(totS)}</td>
+      <td class="num pos">${fxRate?fmtN(totS/fxRate):'—'}</td>
+    </tr></tbody></table></div>`;
+  });
+
+  html += '</div>';
+  return html;
+}
+
+// ── Preview data table ────────────────────────────────────
+function renderPreviewTable(rows, title, showNombre) {
+  const limited = rows.slice(0, 200);
+  const more    = rows.length > 200
+    ? `<tr><td colspan="${showNombre?12:11}" style="text-align:center;padding:10px;color:var(--text3);font-size:11px">
+        Mostrando 200 de ${rows.length.toLocaleString('es-AR')} — el Excel contiene todas las filas
+       </td></tr>` : '';
+
+  return `<div class="card"><div class="card-title">${title}</div>
+    <div class="table-wrap"><table class="data">
+      <thead><tr>
+        <th>Tipo</th><th>ID Dash</th>${showNombre?'<th>Nombre cuenta</th>':''}
+        <th>Fecha</th><th>OP MP</th><th>Medio</th><th>Estado</th><th>Moneda</th>
+        <th class="num">Importe</th><th class="num">Comisión</th><th class="num">Otros imp.</th>
+      </tr></thead>
+      <tbody>${limited.map(r => `
+        <tr>
+          <td><span class="badge ${TYPE_BADGE[r.type]||'b-unclass'}">${r.type||'Sin clasificar'}</span></td>
+          <td style="font-family:var(--mono);font-size:11px">${r.dashId||'—'}</td>
+          ${showNombre?`<td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;font-size:11px">${r.nombre||'—'}</td>`:''}
+          <td>${r.fecha}</td>
+          <td style="font-size:10px;color:var(--text3)">${r.idOpMP}</td>
+          <td>${r.medio}</td>
+          <td>${r.tipoOp}</td>
+          <td>${r.moneda}</td>
+          <td class="num">${fmtN(r.monto)}</td>
+          <td class="num ${r.comis<0?'neg':''}">${r.comis!==0?fmtN(r.comis):'—'}</td>
+          <td class="num ${r.imp<0?'neg':''}">${r.imp!==0?fmtN(r.imp):'—'}</td>
+        </tr>`).join('')}${more}
+      </tbody>
+    </table></div>
+  </div>`;
+}
+
+// ── Unclassified section (MP mode only) ──────────────────
+function renderUnclassified(rows) {
+  const card = document.getElementById('unclass-card');
+  const list = document.getElementById('unclass-list');
+  if (!rows.length) { card.style.display = 'none'; return; }
+  card.style.display = 'block';
+
+  // Store reference so assignUnclass can find the row
+  card._unclassRows = rows;
+
+  list.innerHTML = rows.map((r, i) => `
+    <div class="unclass-item" id="ui-${i}">
+      <div class="unclass-field"><strong>${r.numId||'—'}</strong>Número ID</div>
+      <div class="unclass-field"><strong style="font-family:var(--mono);font-size:11px;color:var(--navy)">${r.idOpMP||'—'}</strong>Op MP</div>
+      <div class="unclass-field"><strong style="max-width:200px;overflow:hidden;text-overflow:ellipsis;display:block">${r.detalle||'—'}</strong>Detalle</div>
+      <div class="unclass-field"><strong>${r.tipoOp} · ${r.moneda} ${fmtN(r.monto)}</strong>Op · Monto</div>
+      <div class="unclass-assign">
+        <select class="unclass-select" id="us-${i}">
+          <option value="">— asignar —</option>
+          <option value="Paid online">Paid online</option>
+          <option value="Paid offline">Paid offline</option>
+          <option value="SaaS">SaaS</option>
+          <option value="Hardware Sales">Hardware Sales</option>
+          <option value="SmartPos Sales">SmartPos Sales</option>
+          <option value="Payouts">Payouts</option>
+          <option value="Payout">Payout</option>
+          <option value="Payin">Payin</option>
+          <option value="Supplier payments">Supplier payments</option>
+          <option value="ignorar">Ignorar</option>
+        </select>
+        <button class="unclass-save-btn" onclick="assignUnclass(${i})">Guardar</button>
+      </div>
+    </div>`).join('');
+}
+
+async function assignUnclass(i) {
+  const sel = document.getElementById('us-' + i).value;
+  if (!sel) return;
+  const card = document.getElementById('unclass-card');
+  const r    = card._unclassRows[i];
+  const patron = r.numId || r.detalle.substring(0, 50);
+  const campo  = r.numId ? 'num_id' : 'detalle';
+  await saveCustomRule(patron, campo, sel, r.country, r.detalle);
+  r.type = sel;
+  const item = document.getElementById('ui-' + i);
+  item.classList.add('resolved');
+  item.querySelector('.unclass-assign').innerHTML = `<span class="unclass-saved">✓ ${sel}</span>`;
+}
+
+// ══════════════════════════════════════════════════════════
+// EXPORT
+// ══════════════════════════════════════════════════════════
+function exportExcel() {
+  const wb    = XLSX.utils.book_new();
+  const today = new Date().toISOString().split('T')[0];
+
+  if (selectedMode === 'td') {
+    // ── Tu Delivery ──────────────────────────────────────
+    const tdRows = allRows.filter(r => r.type === 'Paid online' || r.type === 'Paid offline');
+
+    const data = tdRows.map(r => ({
+      'TIPO DE DEUDA'   : r.type,
+      'ID DE DASH'      : r.dashId,
+      'FECHA DE PAGO'   : toDate(r.fecha),
+      'OP MP'           : r.idOpMP,
+      'MEDIO DE PAGO'   : r.medio,
+      'ESTADO'          : r.tipoOp,
+      'MONEDA'          : r.moneda,
+      'IMPORTE LC C/IVA': r.monto,
+      'COMISIÓN C/IVA'  : r.comis,
+      'OTROS IMPUESTOS' : r.imp,
+    }));
+    const wsDatos = XLSX.utils.json_to_sheet(data.length ? data : [{}], {cellDates:true});
+    applyFormats(wsDatos);
+    XLSX.utils.book_append_sheet(wb, wsDatos, 'Datos');
+
+    // Pivot sheet
+    const countries  = [...new Set(tdRows.map(r => r.country))];
+    const pivotRows  = [];
+    countries.forEach(country => {
+      const cRows  = tdRows.filter(r => r.country === country);
+      const ivaDiv = IVA[country], fxRate = fx[CURRENCY[country]], moneda = CURRENCY[country];
+      const byType = {};
+      cRows.forEach(r => {
+        if (!byType[r.type]) byType[r.type] = { monto:0, comis:0, imp:0, count:0 };
+        byType[r.type].monto += r.monto; byType[r.type].comis += r.comis;
+        byType[r.type].imp   += r.imp;   byType[r.type].count++;
+      });
+      Object.entries(byType).forEach(([type, d]) => {
+        const tot = d.monto+d.comis+d.imp, sin = tot/ivaDiv;
+        pivotRows.push({
+          'PAÍS':moneda, 'MONEDA':moneda, 'TIPO':type, 'MOVIMIENTOS':d.count,
+          'IMPORTE C/IVA':d.monto, 'COMISIÓN':d.comis, 'OTROS IMP.':d.imp,
+          'TOTAL C/IVA':tot, [`TOTAL S/IVA (${Math.round((ivaDiv-1)*100)}%)`]:sin,
+          'TOTAL USD':fxRate?sin/fxRate:'', 'TC USD':fxRate||'', 'FECHA TC':today,
+        });
+      });
+      // Total row per country
+      const totM=cRows.reduce((s,r)=>s+r.monto,0), totC=cRows.reduce((s,r)=>s+r.comis,0);
+      const totI=cRows.reduce((s,r)=>s+r.imp,0), totT=totM+totC+totI, totS=totT/ivaDiv;
+      pivotRows.push({
+        'PAÍS':`Total ${country}`, 'MONEDA':moneda, 'TIPO':'', 'MOVIMIENTOS':cRows.length,
+        'IMPORTE C/IVA':totM, 'COMISIÓN':totC, 'OTROS IMP.':totI,
+        'TOTAL C/IVA':totT, 'TOTAL S/IVA':totS,
+        'TOTAL USD':fxRate?totS/fxRate:'', 'TC USD':fxRate||'', 'FECHA TC':today,
+      });
+      pivotRows.push({});   // blank separator between countries
+    });
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(pivotRows.length ? pivotRows : [{}], {cellDates:true}), 'Pivot');
+    XLSX.writeFile(wb, `tu_delivery_mp_${today}.xlsx`);
+
+  } else {
+    // ── MP Extracto ──────────────────────────────────────
+    // Columnas originales de MP (Date y number nativos) + clasificación al final
+    const data = allRows.map(r => ({
+      ...fmtRaw(r._raw),
+      'Type'              : r.type || 'Sin identificar',
+      'ID'                : r.dashId,
+      'Nombre de la cuenta': r.nombre,
+      'Fecha de liberación': calcFechaLib(r),
+    }));
+    const wsMp = XLSX.utils.json_to_sheet(data.length ? data : [{}], {cellDates:true});
+    applyFormats(wsMp);
+    XLSX.utils.book_append_sheet(wb, wsMp, 'Datos');
+
+    // No clasificados
+    const unc = allRows.filter(r => r.type === null).map(r => ({
+      ...fmtRaw(r._raw),
+      'Type'              : 'Sin identificar',
+      'ID'                : r.dashId,
+      'Nombre de la cuenta': r.nombre,
+      'Fecha de liberación': calcFechaLib(r),
+    }));
+    const wsUnc = XLSX.utils.json_to_sheet(unc.length ? unc : [{ nota:'Sin movimientos no clasificados ✓' }], {cellDates:true});
+    applyFormats(wsUnc);
+    XLSX.utils.book_append_sheet(wb, wsUnc, 'No clasificados');
+    XLSX.writeFile(wb, `extracto_mp_${today}.xlsx`);
+  }
+}
+
+// ══════════════════════════════════════════════════════════
+// UI CONTROLLER
+// ══════════════════════════════════════════════════════════
+function setStep(n) {
+  [1,2,3].forEach(i => {
+    document.getElementById('screen-'+i).classList.toggle('active', i===n);
+    const d = document.getElementById('step-'+i);
+    d.classList.remove('active','done');
+    if (i===n)    d.classList.add('active');
+    else if(i<n)  d.classList.add('done');
+  });
+}
+
+function goStep(n) {
+  if (n === 2) {
+    document.getElementById('step2-title').textContent =
+      selectedMode === 'td' ? 'Archivos · Resumen Tu Delivery' : 'Archivos · Extracto Mercado Pago';
+    const lbl = document.getElementById('acc-req-label');
+    lbl.className   = selectedMode === 'td' ? 'req' : 'opt';
+    lbl.textContent = selectedMode === 'td' ? 'requerido' : 'recomendado';
+    checkReady();
+  }
+  setStep(n);
+}
+
+function selectMode(mode) {
+  selectedMode = mode;
+  ['td','mp'].forEach(m => document.getElementById('card-'+m).classList.toggle('selected', m===mode));
+  document.getElementById('btn-next-1').disabled = false;
+}
+
+function toggleOdoo() {
+  const on = document.getElementById('chk-odoo').checked;
+  document.getElementById('btn-export-mp').style.display   = on ? 'none'         : '';
+  document.getElementById('btn-export-odoo').style.display = on ? ''             : 'none';
+  document.getElementById('export-hint').textContent       = on
+    ? 'Excel con hojas: Extracto · Paid online'
+    : 'Excel con hojas: Datos · No clasificados';
+}
+
+function onExtractoFile(e) {
+  const f = e.target.files[0]; if (!f) return;
+  const name = f.name.toUpperCase();
+  let country = 'ARG';
+  if (name.includes('MEX') || name.includes('_MX'))                          country = 'MEX';
+  else if (name.includes('CHL') || name.includes('_CL') || name.includes('MP_CL')) country = 'CHL';
+  extractos.push({ file:f, country });
+  renderExtractos();
+  e.target.value = '';
+  checkReady();
+}
+
+function renderExtractos() {
+  document.getElementById('extracto-list').innerHTML = extractos.map((e, i) => `
+    <div class="extracto-item">
+      <select class="ext-country-sel" onchange="extractos[${i}].country=this.value">
+        <option value="ARG" ${e.country==='ARG'?'selected':''}>ARG</option>
+        <option value="CHL" ${e.country==='CHL'?'selected':''}>CHL</option>
+        <option value="MEX" ${e.country==='MEX'?'selected':''}>MEX</option>
+      </select>
+      <span class="ext-name">${e.file.name}</span>
+      <button class="ext-remove" onclick="removeExt(${i})">✕</button>
+    </div>`).join('');
+}
+
+function removeExt(i) { extractos.splice(i,1); renderExtractos(); checkReady(); }
+
+function onDrag(e, id) { e.preventDefault(); document.getElementById(id).classList.add('over'); }
+function offDrag(id)   { document.getElementById(id).classList.remove('over'); }
+function onDropAcc(e)  { e.preventDefault(); offDrag('dz-acc'); loadAccFile(e.dataTransfer.files[0]); }
+function loadAcc(e)    { loadAccFile(e.target.files[0]); }
+
+function loadAccFile(f) {
+  if (!f) return;
+  accFile = f;
+  document.getElementById('dz-acc').classList.add('loaded');
+  document.getElementById('acc-name').textContent = f.name;
+  checkReady();
+}
+
+function checkReady() {
+  const ok = extractos.length > 0 && (selectedMode !== 'td' || !!accFile);
+  document.getElementById('btn-process').disabled = !ok;
+}
+
+function setProgress(p, label) {
+  document.getElementById('progress-wrap').style.display = 'block';
+  document.getElementById('progress-fill').style.width   = p + '%';
+  if (label) document.getElementById('progress-label').textContent = label;
+}
+
+// ══════════════════════════════════════════════════════════
+// EXPORT ODOO
+// ══════════════════════════════════════════════════════════
+
+// Fecha de liberación:
+//   Paid online ARG/CHL → aprobación + 10 días
+//   Paid online MEX     → aprobación + 12 días
+//   Todo lo demás       → fecha de aprobación
+function calcFechaLib(r) {
+  const base = toDate(r._raw['FECHA DE APROBACIÓN'] || r._raw['FECHA DE ORIGEN']);
+  if (!base) return null;
+  if (r.type !== 'Paid online') return base;
+  const days = r.country === 'MEX' ? 12 : 10;
+  const d = new Date(base);
+  d.setUTCDate(d.getUTCDate() + days);
+  return d;
+}
+
+function exportOdoo() {
+  const wb    = XLSX.utils.book_new();
+  const today = new Date().toISOString().split('T')[0];
+
+  const toOdooRow = r => ({
+    'Fecha'                : toDate(r._raw['FECHA DE APROBACIÓN'] || r._raw['FECHA DE ORIGEN']),
+    'Descripción'          : '',
+    'Contacto/Id de la DB' : '',
+    'Referencia'           : String(r._raw['ID DE OPERACIÓN EN MERCADO PAGO'] || ''),
+    'Importe'              : toNum(r._raw['VALOR DE LA COMPRA']),
+    'COMISIONES + IVA'     : toNum(r._raw['COMISIONES + IVA']),
+    'Type'                 : r.type || 'Sin identificar',
+    'ID'                   : r.dashId,
+    'Nombre'               : r.nombre,
+    'Fecha de liberación'  : calcFechaLib(r),
+  });
+
+  // Hoja Extracto — todos excepto Paid online
+  const extractoRows = allRows.filter(r => r.type !== 'Paid online');
+  const wsExt = XLSX.utils.json_to_sheet(extractoRows.length ? extractoRows.map(toOdooRow) : [{}], {cellDates:true});
+  applyFormats(wsExt);
+  XLSX.utils.book_append_sheet(wb, wsExt, 'Extracto');
+
+  // Hoja Paid online
+  const paidOnline = allRows.filter(r => r.type === 'Paid online');
+  const wsPO = XLSX.utils.json_to_sheet(paidOnline.length ? paidOnline.map(toOdooRow) : [{}], {cellDates:true});
+  applyFormats(wsPO);
+  XLSX.utils.book_append_sheet(wb, wsPO, 'Paid online');
+
+  XLSX.writeFile(wb, `extracto_odoo_${today}.xlsx`);
+}
+
+// ══════════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════════
+if (CONFIG.SHEET_URL) document.getElementById('sheet-link').href = CONFIG.SHEET_URL;
+else document.getElementById('sheet-link').style.display = 'none';
+fetchFX();
+loadCustomRules();
+</script>
+</body>
+</html>

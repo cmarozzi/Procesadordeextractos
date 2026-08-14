@@ -1,0 +1,1686 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Extracto Banco Estado · Fudo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+/* ══════════════════════ VARIABLES FUDO ══════════════════════ */
+:root {
+  --orange:#FF5023; --orange-bg:rgba(255,80,35,.09);
+  --navy:#3938A0;   --navy-bg:rgba(57,56,160,.09);
+  --green:#00a650;  --green-bg:rgba(0,166,80,.09);
+  --red:#e24b4a;    --red-bg:rgba(226,75,74,.09);
+  --amber:#BA7517;  --amber-bg:rgba(186,117,23,.09);
+  --gray:#9C9A92;   --gray-bg:rgba(156,154,146,.09);
+  --font:'Barlow',sans-serif;
+  --mono:'DM Mono',monospace;
+  --text:#3B3B3B; --text2:#6B6B6B; --text3:#9C9A92;
+  --bg:#ffffff; --bg2:#F5F4F0; --bg3:#eeedea;
+  --border:rgba(0,0,0,.08); --border2:rgba(0,0,0,.13);
+  --r:10px; --shadow:0 2px 12px rgba(0,0,0,.06);
+  --warn:#a3720a; --warn-bg:#fdf1d6;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);font-size:14px;background:var(--bg2);color:var(--text);min-height:100vh}
+
+/* ══════════════════════ TOPBAR ══════════════════════ */
+.topbar{
+  position:sticky;top:0;z-index:200;height:56px;
+  background:var(--bg);border-bottom:1px solid var(--border2);
+  box-shadow:var(--shadow);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 24px;gap:16px;
+}
+.topbar-left{display:flex;align-items:center;gap:10px}
+.logo{width:34px;height:34px;flex-shrink:0}
+.topbar-title{font-family:var(--font);font-size:15px;font-weight:600;color:var(--text)}
+.topbar-right{display:flex;align-items:center;gap:10px}
+#rules-badge{
+  font-family:var(--mono);font-size:11px;font-weight:500;
+  background:var(--navy-bg);color:var(--navy);
+  border:1px solid rgba(57,56,160,.2);border-radius:20px;
+  padding:4px 12px;cursor:pointer;white-space:nowrap;
+}
+#rules-badge:hover{background:var(--navy);color:#fff}
+#sheet-link{
+  font-family:var(--mono);font-size:11px;font-weight:500;
+  color:var(--green);text-decoration:none;
+  border:1px solid rgba(0,166,80,.25);border-radius:20px;
+  padding:4px 12px;white-space:nowrap;
+}
+#sheet-link:hover{background:var(--green-bg)}
+
+/* ══════════════════════ LAYOUT ══════════════════════ */
+.panel{max-width:820px;margin:0 auto;padding:28px 20px}
+#review-panel{max-width:100%;padding:0}
+
+/* ══════════════════════ STEPS ══════════════════════ */
+.steps{display:flex;align-items:center;justify-content:center;gap:0;margin-bottom:28px}
+.step{display:flex;flex-direction:column;align-items:center;gap:6px;position:relative}
+.step-dot{
+  width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-family:var(--mono);font-size:11px;font-weight:500;
+  border:1.5px solid var(--border2);background:var(--bg);color:var(--text3);z-index:1;
+  transition:all .2s;
+}
+.step.active .step-dot{background:var(--orange);border-color:var(--orange);color:#fff;font-weight:700}
+.step.done .step-dot{background:var(--orange-bg);border-color:var(--orange);color:var(--orange)}
+.step-label{font-size:11px;font-weight:500;color:var(--text3);white-space:nowrap}
+.step.active .step-label,.step.done .step-label{color:var(--orange)}
+.step-line{width:60px;height:1.5px;background:var(--border2);margin-bottom:20px}
+.step.done + .step-line{background:var(--orange)}
+
+/* ══════════════════════ CARDS ══════════════════════ */
+.card{
+  background:var(--bg);border-radius:14px;
+  border:.5px solid var(--border2);padding:1.5rem;
+  box-shadow:var(--shadow);margin-bottom:16px;
+}
+.card-title{
+  font-family:var(--mono);font-size:11px;font-weight:600;
+  text-transform:uppercase;letter-spacing:.5px;color:var(--text2);
+  margin-bottom:14px;display:flex;align-items:center;gap:8px;
+}
+
+/* ══════════════════════ DROPZONES ══════════════════════ */
+.drop-zone{
+  border:1.5px dashed var(--border2);border-radius:var(--r);
+  padding:24px;text-align:center;cursor:pointer;
+  transition:all .2s;color:var(--text3);position:relative;
+}
+.drop-zone:hover,.drop-zone.drag-over{
+  border:1.5px solid var(--orange);background:var(--orange-bg);color:var(--orange);
+}
+.drop-zone.has-files{border:1.5px solid var(--orange);background:var(--orange-bg)}
+.drop-zone input[type=file]{
+  position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;
+}
+.dz-icon{font-size:28px;display:block;margin-bottom:6px}
+.dz-text{font-size:13px;font-weight:500;display:block}
+.dz-sub{font-size:11px;display:block;margin-top:3px;opacity:.7}
+
+.file-list{margin-top:10px;display:flex;flex-direction:column;gap:4px}
+.file-item{
+  display:flex;align-items:center;gap:8px;
+  padding:6px 10px;background:var(--bg2);border-radius:8px;
+  font-size:12px;font-family:var(--mono);
+}
+.fi-name{flex:1;color:var(--text);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fi-size{color:var(--text3);flex-shrink:0}
+.fi-remove{
+  cursor:pointer;color:var(--red);font-size:14px;
+  border:none;background:none;padding:0 2px;line-height:1;flex-shrink:0;
+}
+.fi-remove:hover{color:#b71c1c}
+
+/* ══════════════════════ BOTONES ══════════════════════ */
+.btn-primary{
+  background:var(--orange);color:#fff;border:none;border-radius:10px;
+  padding:11px 22px;font-family:var(--font);font-size:13px;font-weight:600;
+  cursor:pointer;transition:all .15s;letter-spacing:.2px;
+}
+.btn-primary:hover{background:#e8421a}
+.btn-primary:disabled{background:var(--border2);color:var(--text3);cursor:not-allowed}
+.btn-secondary{
+  background:var(--bg);color:var(--text2);
+  border:1px solid var(--border2);border-radius:10px;
+  padding:9px 18px;font-family:var(--font);font-size:13px;font-weight:500;
+  cursor:pointer;transition:all .15s;
+}
+.btn-secondary:hover{background:var(--bg2)}
+.btn-ghost{
+  background:transparent;color:var(--navy);
+  border:1px solid rgba(57,56,160,.3);border-radius:10px;
+  padding:7px 16px;font-family:var(--font);font-size:12px;font-weight:500;
+  cursor:pointer;transition:all .15s;
+}
+.btn-ghost:hover{background:var(--navy-bg)}
+.btn-sm{padding:5px 12px;font-size:12px;border-radius:7px}
+
+.proc-status{
+  padding:10px 16px;border-radius:8px;font-size:13px;
+  margin-top:12px;display:none;font-family:var(--mono);
+}
+.proc-status.info{background:var(--navy-bg);color:var(--navy)}
+.proc-status.error{background:var(--red-bg);color:var(--red)}
+.proc-status.ok{background:var(--green-bg);color:var(--green)}
+
+/* ══════════════════════ RULES PANEL ══════════════════════ */
+details.rules-panel summary{
+  list-style:none;cursor:pointer;font-size:13px;font-weight:600;color:var(--text2);
+  padding:4px 0;user-select:none;display:flex;align-items:center;gap:8px;
+}
+details.rules-panel summary::-webkit-details-marker{display:none}
+details.rules-panel summary::before{
+  content:'▶';font-size:10px;color:var(--text3);transition:transform .2s;
+}
+details[open].rules-panel summary::before{transform:rotate(90deg)}
+.rules-list{margin-top:12px;display:flex;flex-direction:column;gap:6px}
+.rule-item{
+  display:flex;align-items:center;gap:8px;padding:8px 12px;
+  background:var(--bg2);border-radius:8px;font-size:12px;
+}
+.rule-item .rule-val{flex:1;font-family:var(--mono);color:var(--text);font-weight:500}
+.rule-item .rule-info{color:var(--text3)}
+.rule-form{
+  margin-top:14px;padding:14px;background:var(--bg2);border-radius:var(--r);
+  display:flex;flex-direction:column;gap:8px;
+}
+.rule-form-row{display:flex;gap:8px;align-items:flex-end}
+.rule-form-row > div{flex:1;display:flex;flex-direction:column;gap:3px}
+.rule-form label{font-size:11px;font-weight:600;color:var(--text3);font-family:var(--mono)}
+.rule-form input,.rule-form select{
+  padding:7px 10px;border:1px solid var(--border2);border-radius:7px;
+  font-family:var(--font);font-size:13px;background:var(--bg);color:var(--text);
+}
+.rule-form input:focus,.rule-form select:focus{
+  outline:none;border-color:var(--orange);box-shadow:0 0 0 2px var(--orange-bg);
+}
+
+/* ══════════════════════ REVIEW TOOLBAR ══════════════════════ */
+.rev-toolbar{
+  background:var(--bg);border-bottom:1px solid var(--border2);
+  padding:10px 20px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;
+  box-shadow:var(--shadow);
+}
+.rev-toolbar .sep{width:1px;height:20px;background:var(--border2)}
+
+/* ══════════════════════ PILLS ══════════════════════ */
+.pills{display:flex;gap:6px;flex-wrap:wrap;padding:10px 20px 4px;background:var(--bg2)}
+.pill{
+  font-family:var(--mono);font-size:11px;font-weight:500;
+  padding:5px 13px;border-radius:20px;cursor:pointer;transition:all .15s;
+  border:1.5px solid transparent;background:var(--bg);color:var(--text2);
+  box-shadow:0 1px 3px rgba(0,0,0,.07);
+}
+.pill:hover{border-color:var(--border2)}
+.pill.active-all   {border-color:var(--text2);color:var(--text)}
+.pill.active-auto  {border-color:var(--green);color:var(--green);background:var(--green-bg)}
+.pill.active-regla {border-color:var(--orange);color:var(--orange);background:var(--orange-bg)}
+.pill.active-manual{border-color:var(--navy);color:var(--navy);background:var(--navy-bg)}
+.pill.active-revisar{border-color:var(--amber);color:var(--amber);background:var(--amber-bg)}
+.pill.active-neteado{border-color:var(--gray);color:var(--gray);background:var(--gray-bg)}
+.pill .pill-cnt{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-width:18px;height:16px;border-radius:10px;
+  background:var(--border2);font-size:10px;margin-left:4px;padding:0 4px;
+}
+
+/* ══════════════════════ TABLE ══════════════════════ */
+.table-wrap{
+  overflow-x:auto;overflow-y:auto;
+  max-height:calc(100vh - 170px);
+  padding:0 16px 16px;
+}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead th{
+  background:var(--bg2);color:var(--text2);
+  font-family:var(--mono);font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;
+  padding:8px 10px;border:.5px solid var(--border);
+  position:sticky;top:0;z-index:1;white-space:nowrap;
+}
+tbody td{
+  padding:7px 10px;border:.5px solid var(--border);
+  vertical-align:middle;background:var(--bg);
+}
+
+/* Row states via border-left */
+tr.row-auto    td:first-child{border-left:3px solid var(--green)}
+tr.row-regla   td:first-child{border-left:3px solid var(--orange)}
+tr.row-manual  td:first-child{border-left:3px solid var(--navy)}
+tr.row-revisar td:first-child{border-left:3px solid var(--amber)}
+tr.row-revisar td{background:var(--warn-bg) !important}
+tr.row-neteado td{background:var(--bg2) !important;color:var(--text3)}
+tr.row-neteado td:first-child{border-left:3px solid var(--border)}
+tr.row-neteado td span,.row-neteado td *:not(.badge){text-decoration:line-through}
+tr.row-sel td{outline:2px solid var(--orange);outline-offset:-2px}
+
+tbody tr:hover td{filter:brightness(.98)}
+
+/* Inline editable cells */
+.editable{
+  min-width:90px;outline:none;cursor:text;
+  border-radius:5px;padding:2px 4px;transition:background .15s;
+}
+.editable:hover{background:var(--bg3)}
+.editable:focus{background:var(--bg3);outline:1.5px solid var(--orange)}
+
+.num{text-align:right;font-family:var(--mono);white-space:nowrap}
+.pos{color:var(--green)}
+.neg{color:var(--red)}
+
+/* ══════════════════════ BADGES ══════════════════════ */
+.badge{
+  font-family:var(--mono);font-size:10px;font-weight:600;text-transform:uppercase;
+  letter-spacing:.3px;padding:2px 7px;border-radius:4px;white-space:nowrap;display:inline-block;
+}
+.badge-auto   {background:var(--green-bg);color:var(--green)}
+.badge-regla  {background:var(--orange-bg);color:var(--orange)}
+.badge-manual {background:var(--navy-bg);color:var(--navy)}
+.badge-revisar{background:var(--amber-bg);color:var(--amber)}
+.badge-neteado{background:var(--gray-bg);color:var(--gray)}
+
+/* ══════════════════════ CORRECTION MODAL ══════════════════════ */
+#fix-overlay{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:500;
+  align-items:center;justify-content:center;
+}
+#fix-overlay.open{display:flex}
+#fix-modal{
+  background:var(--bg);border-radius:16px;padding:28px;width:460px;max-width:95vw;
+  box-shadow:0 8px 40px rgba(0,0,0,.2);position:relative;
+}
+#fix-modal h3{font-size:16px;font-weight:700;margin-bottom:4px}
+#fix-modal .fix-ref{
+  font-family:var(--mono);font-size:11px;color:var(--text3);
+  margin-bottom:18px;padding:6px 10px;background:var(--bg2);border-radius:6px;
+}
+.fix-fields{display:flex;flex-direction:column;gap:10px;margin-bottom:18px}
+.fix-fields label{font-size:11px;font-weight:600;color:var(--text3);display:block;margin-bottom:3px;font-family:var(--mono)}
+.fix-fields input,.fix-fields select{
+  width:100%;padding:9px 12px;border:1px solid var(--border2);border-radius:8px;
+  font-family:var(--font);font-size:13px;color:var(--text);background:var(--bg);
+}
+.fix-fields input:focus,.fix-fields select:focus{
+  outline:none;border-color:var(--orange);box-shadow:0 0 0 2px var(--orange-bg);
+}
+.fix-actions{display:flex;gap:8px;flex-wrap:wrap}
+.fix-close{
+  position:absolute;top:16px;right:16px;border:none;background:none;
+  font-size:18px;color:var(--text3);cursor:pointer;line-height:1;
+}
+
+/* ══════════════════════ GROUP MODAL ══════════════════════ */
+#group-overlay{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:500;
+  align-items:center;justify-content:center;
+}
+#group-overlay.open{display:flex}
+#group-modal{
+  background:var(--bg);border-radius:16px;padding:24px;width:420px;max-width:95vw;
+  box-shadow:0 8px 40px rgba(0,0,0,.2);
+}
+#group-modal h3{font-size:15px;font-weight:700;margin-bottom:12px}
+#group-modal .group-summary{
+  font-family:var(--mono);font-size:12px;padding:10px;
+  background:var(--bg2);border-radius:8px;margin-bottom:14px;color:var(--text2);
+}
+#group-modal input{
+  width:100%;padding:9px 12px;border:1px solid var(--border2);border-radius:8px;
+  font-family:var(--font);font-size:13px;color:var(--text);background:var(--bg);margin-bottom:12px;
+}
+#group-modal input:focus{outline:none;border-color:var(--orange)}
+#group-modal .group-actions{display:flex;gap:8px}
+
+/* ══════════════════════ TOAST ══════════════════════ */
+#toast{
+  position:fixed;bottom:28px;left:50%;transform:translateX(-50%);
+  background:#1c1c1c;color:#fff;border-radius:10px;padding:11px 20px;
+  font-size:13px;font-family:var(--mono);z-index:1000;
+  opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap;
+}
+#toast.show{opacity:1}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════ TOPBAR ══════════════════════════════ -->
+<header class="topbar">
+  <div class="topbar-left">
+    <svg class="logo" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect width="34" height="34" rx="7" fill="#FF5023"/>
+      <text x="17" y="23" text-anchor="middle" font-family="Barlow,Arial,sans-serif"
+            font-size="18" font-weight="700" fill="#fff">F</text>
+    </svg>
+    <span class="topbar-title">Extracto Banco Estado · Fudo</span>
+  </div>
+  <div class="topbar-right">
+    <span id="rules-badge" onclick="toggleRulesPanel()">⚡ <span id="rules-count">0</span> reglas</span>
+    <a id="sheet-link" href="https://docs.google.com/spreadsheets/d/1xZgjk9FwWUFL-S0TVuc6aWqbXv_D2vlx0cX0n0Jw6ko/edit" target="_blank">📊 Reglas</a>
+  </div>
+</header>
+
+<!-- ══════════════════════════════ UPLOAD PANEL ══════════════════════════════ -->
+<div id="upload-panel" class="panel">
+
+  <!-- Steps -->
+  <div class="steps">
+    <div class="step active" id="step-1">
+      <div class="step-dot">1</div>
+      <div class="step-label">Archivos</div>
+    </div>
+    <div class="step-line"></div>
+    <div class="step" id="step-2">
+      <div class="step-dot">2</div>
+      <div class="step-label">Procesar</div>
+    </div>
+    <div class="step-line"></div>
+    <div class="step" id="step-3">
+      <div class="step-dot">3</div>
+      <div class="step-label">Revisar</div>
+    </div>
+  </div>
+
+  <!-- Cartolas -->
+  <div class="card">
+    <div class="card-title">📂 Cartolas bancarias</div>
+    <p style="font-size:12px;color:var(--text3);margin-bottom:12px">
+      Excel de Cartola Histórica Cuenta Corriente. Podés cargar varios períodos — se deduplicarán automáticamente.
+    </p>
+    <div class="drop-zone" id="dz-cartolas"
+         ondragover="dzDragOver(event,'cartolas')" ondragleave="dzDragLeave('cartolas')" ondrop="dzDrop(event,'cartolas')">
+      <span class="dz-icon">📄</span>
+      <span class="dz-text">Arrastrá los archivos de Cartola acá</span>
+      <span class="dz-sub">o hacé click para seleccionar (.xlsx)</span>
+      <input type="file" multiple accept=".xlsx,.xls" onchange="addFiles('cartolas',this.files)">
+    </div>
+    <div class="file-list" id="list-cartolas"></div>
+  </div>
+
+  <!-- Nóminas -->
+  <div class="card">
+    <div class="card-title">📋 Detalle Nóminas <span style="font-weight:400;text-transform:none;color:var(--text3)">(opcional)</span></div>
+    <p style="font-size:12px;color:var(--text3);margin-bottom:12px">
+      Necesarios para desagregar las Provisiones de Proveedores en pagos individuales.
+    </p>
+    <div class="drop-zone" id="dz-nominas"
+         ondragover="dzDragOver(event,'nominas')" ondragleave="dzDragLeave('nominas')" ondrop="dzDrop(event,'nominas')">
+      <span class="dz-icon">📋</span>
+      <span class="dz-text">Arrastrá los Detalle Nómina acá</span>
+      <span class="dz-sub">o hacé click para seleccionar (.xlsx)</span>
+      <input type="file" multiple accept=".xlsx,.xls" onchange="addFiles('nominas',this.files)">
+    </div>
+    <div class="file-list" id="list-nominas"></div>
+  </div>
+
+  <!-- Rules panel -->
+  <div class="card" id="rules-card">
+    <details class="rules-panel" id="rules-details">
+      <summary class="card-title" style="margin-bottom:0">
+        ⚡ Reglas de clasificación
+        <span id="rules-detail-count" style="margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--text3)">0 reglas</span>
+      </summary>
+
+      <div class="rules-list" id="rules-list" style="margin-top:12px"></div>
+
+      <!-- Agregar regla -->
+      <div class="rule-form" style="margin-top:12px">
+        <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:6px">+ Nueva regla</div>
+        <div class="rule-form-row">
+          <div>
+            <label>La descripción contiene</label>
+            <input id="rf-value" type="text" placeholder="ej: ENTEL S.A.">
+          </div>
+          <div>
+            <label>Contacto Odoo</label>
+            <input id="rf-contacto" type="text" placeholder="ej: Entel S.A.">
+          </div>
+        </div>
+        <div class="rule-form-row">
+          <div>
+            <label>Descripción Odoo</label>
+            <input id="rf-descripcion" type="text" placeholder="ej: Pago - Entel S.A.">
+          </div>
+          <div>
+            <label>Categoría</label>
+            <select id="rf-categoria">
+              <option value="pago">Pago a proveedor</option>
+              <option value="sueldo">Sueldo</option>
+              <option value="otro">Otro</option>
+              <option value="revisar">Revisar</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <button class="btn-primary btn-sm" onclick="addRule()" style="margin-top:4px">+ Agregar regla</button>
+        </div>
+      </div>
+    </details>
+  </div>
+
+  <!-- Action -->
+  <button class="btn-primary" id="btn-procesar" onclick="runPipeline()" disabled style="width:100%;padding:14px;font-size:14px">
+    Procesar →
+  </button>
+  <div class="proc-status" id="proc-status"></div>
+
+</div>
+
+<!-- ══════════════════════════════ REVIEW PANEL ══════════════════════════════ -->
+<div id="review-panel" style="display:none">
+
+  <!-- Toolbar -->
+  <div class="rev-toolbar">
+    <button class="btn-secondary btn-sm" onclick="goToUpload()">← Archivos</button>
+    <div class="sep"></div>
+    <button class="btn-ghost btn-sm" id="btn-group" onclick="openGroupModal()" disabled>
+      ⊕ Agrupar (<span id="sel-count">0</span> filas<span id="sel-total"></span>)
+    </button>
+    <div class="sep"></div>
+    <button class="btn-primary btn-sm" onclick="exportCSV()">⬇ Exportar CSV Odoo</button>
+    <div style="margin-left:auto;display:flex;gap:16px;font-family:var(--mono);font-size:11px;color:var(--text3)">
+      <span><span id="cnt-auto" style="color:var(--green);font-weight:600">0</span> auto</span>
+      <span><span id="cnt-regla" style="color:var(--orange);font-weight:600">0</span> regla</span>
+      <span><span id="cnt-revisar" style="color:var(--amber);font-weight:600">0</span> revisar</span>
+      <span><span id="cnt-neteado" style="color:var(--gray);font-weight:600">0</span> neteadas</span>
+    </div>
+  </div>
+
+  <!-- Filter pills -->
+  <div class="pills">
+    <span class="pill active-all" data-filter="all" onclick="setFilter('all')">Todas <span class="pill-cnt" id="pcnt-all">0</span></span>
+    <span class="pill" data-filter="auto"    onclick="setFilter('auto')">✓ Auto <span class="pill-cnt" id="pcnt-auto">0</span></span>
+    <span class="pill" data-filter="regla"   onclick="setFilter('regla')">⚡ Regla <span class="pill-cnt" id="pcnt-regla">0</span></span>
+    <span class="pill" data-filter="manual"  onclick="setFilter('manual')">✎ Manual <span class="pill-cnt" id="pcnt-manual">0</span></span>
+    <span class="pill" data-filter="revisar" onclick="setFilter('revisar')">⚠ Revisar <span class="pill-cnt" id="pcnt-revisar">0</span></span>
+    <span class="pill" data-filter="neteado" onclick="setFilter('neteado')">○ Neteadas <span class="pill-cnt" id="pcnt-neteado">0</span></span>
+  </div>
+
+  <!-- Table -->
+  <div class="table-wrap" style="padding:12px 16px 20px">
+    <table id="tbl">
+      <thead>
+        <tr>
+          <th style="width:32px"><input type="checkbox" id="chk-all" onchange="toggleAllCheckboxes(this)"></th>
+          <th>Fecha</th>
+          <th>Descripción banco</th>
+          <th>Tipo</th>
+          <th>Descripción Odoo</th>
+          <th>Contacto</th>
+          <th>Referencia</th>
+          <th>Importe</th>
+          <th>Estado</th>
+          <th style="width:60px"></th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ══════════════════════════════ CORRECTION MODAL ══════════════════════════════ -->
+<div id="fix-overlay" onclick="closeFix(event)">
+  <div id="fix-modal">
+    <button class="fix-close" onclick="closeFix()">✕</button>
+    <h3>Corregir fila</h3>
+    <div class="fix-ref" id="fix-ref-text"></div>
+    <div class="fix-fields">
+      <div>
+        <label>Descripción Odoo</label>
+        <input id="fix-desc" type="text">
+      </div>
+      <div>
+        <label>Contacto</label>
+        <input id="fix-cont" type="text">
+      </div>
+      <div>
+        <label>Texto a detectar en descripción banco (para guardar regla)</label>
+        <input id="fix-match" type="text">
+      </div>
+      <div>
+        <label>Categoría</label>
+        <select id="fix-cat">
+          <option value="pago">Pago a proveedor</option>
+          <option value="sueldo">Sueldo</option>
+          <option value="otro">Otro</option>
+          <option value="revisar">Revisar</option>
+        </select>
+      </div>
+    </div>
+    <div class="fix-actions">
+      <button class="btn-secondary" onclick="fixOnce()">Corregir solo esta vez</button>
+      <button class="btn-primary" onclick="fixAndSaveRule()">⚡ Guardar regla y corregir</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════ GROUP MODAL ══════════════════════════════ -->
+<div id="group-overlay" onclick="closeGroup(event)">
+  <div id="group-modal">
+    <h3>Agrupar filas seleccionadas</h3>
+    <div class="group-summary" id="group-summary"></div>
+    <label style="font-size:11px;font-weight:600;color:var(--text3);font-family:var(--mono)">Descripción de la fila agrupada</label>
+    <input id="group-desc" type="text" style="margin-top:4px">
+    <label style="font-size:11px;font-weight:600;color:var(--text3);font-family:var(--mono)">Contacto</label>
+    <input id="group-cont" type="text" style="margin-top:4px;margin-bottom:12px">
+    <div class="group-actions">
+      <button class="btn-secondary" onclick="closeGroup()">Cancelar</button>
+      <button class="btn-primary" onclick="confirmGroup()">Agrupar →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════════════════════════════════════
+// CONFIG
+// ══════════════════════════════════════════════════════════════════════════════
+
+const CONFIG = {
+  SHEETS_CSV_URL:  '',  // URL pública CSV de la pestaña BancoEstado en Google Sheets
+  APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbwFwtGrCdvO3jSzL--WLRTZ-3SZctu6XMbFUJWrjM8Ar_qtCmIPPoqLORHf0xgKlKQm/exec',
+  SHEET_URL:       'https://docs.google.com/spreadsheets/d/1xZgjk9FwWUFL-S0TVuc6aWqbXv_D2vlx0cX0n0Jw6ko/edit',
+  SHEET_TAB:       'Banco Estado',
+};
+
+// ══════════════════════════════════════════════════════════════════════════════
+// CONFIGURACIÓN DEL BANCO
+// ══════════════════════════════════════════════════════════════════════════════
+
+const RUT_EMPRESA = "76400485-k";
+const BANCOS_PROPIOS = { "MP":"Mercado Pago","BCI":"BCI","BICE-06":"BICE-06","BICE-08":"BICE-08" };
+const BICE_CUENTAS = { "38857-6":"BICE-06","388576":"BICE-06","38856-8":"BICE-08","388568":"BICE-08" };
+const PREVIRED_KEYWORDS = [
+  "banmedica","vida tres","fonasa","isapre","consalud","fapp",
+  "asoc chilena de seguridad","cruz blanca","colmena","los andes","previred","nueva mas vida",
+];
+const MESES_ES = {
+  1:"Enero",2:"Febrero",3:"Marzo",4:"Abril",5:"Mayo",6:"Junio",
+  7:"Julio",8:"Agosto",9:"Septiembre",10:"Octubre",11:"Noviembre",12:"Diciembre"
+};
+
+const T = {
+  TRANSF_INTERNA:"TRANSF_INTERNA", PREVIRED:"PREVIRED",
+  PROV_PROV:"PROV_PROVEEDORES",    PROV_REM:"PROV_REMUNERACIONES",
+  COMISION_REM:"COMISION_REM",     ABONO_COMISION:"ABONO_COMISION",
+  PAC_CREDITO:"PAC_CREDITO",       TRANSF_PERSONA:"TRANSF_PERSONA",
+  TRANSF_TERCERO:"TRANSF_TERCERO", RECHAZO_PROV:"RECHAZO_PROV",
+  CAMBIO_INTL:"CAMBIO_INTERNACIONAL", DESCONOCIDO:"DESCONOCIDO",
+};
+const E = { AUTO:"auto", REVISAR:"revisar", NETEADO:"neteado" };
+
+const TIPO_LABELS = {
+  TRANSF_INTERNA:"Transf. interna",   PREVIRED:"Previred",
+  PROV_PROVEEDORES:"Pago proveedores",PROV_REMUNERACIONES:"Sueldos",
+  COMISION_REM:"Comisión banco",      ABONO_COMISION:"Abono comisión",
+  PAC_CREDITO:"PAC Crédito",          TRANSF_PERSONA:"Transf. persona",
+  TRANSF_TERCERO:"Transf. tercero",   RECHAZO_PROV:"Rechazo prov.",
+  CAMBIO_INTERNACIONAL:"Cambio intl.",DESCONOCIDO:"Desconocido",
+};
+const TIPO_COLORS = {
+  TRANSF_INTERNA:"#3938A0",   PREVIRED:"#6a1b9a",
+  PROV_PROVEEDORES:"#00a650", PROV_REMUNERACIONES:"#00838f",
+  COMISION_REM:"#6B6B6B",     ABONO_COMISION:"#6B6B6B",
+  PAC_CREDITO:"#e24b4a",      TRANSF_PERSONA:"#FF5023",
+  TRANSF_TERCERO:"#4e342e",   RECHAZO_PROV:"#e24b4a",
+  CAMBIO_INTERNACIONAL:"#00695c", DESCONOCIDO:"#BA7517",
+};
+
+// ══════════════════════════════════════════════════════════════════════════════
+// REGLAS (builtin + custom)
+// ══════════════════════════════════════════════════════════════════════════════
+
+// Reglas predefinidas (no se pueden eliminar)
+const DEFAULT_RULES = [];
+
+// Reglas custom cargadas/creadas en sesión
+let rules = [...DEFAULT_RULES];
+
+async function loadCustomRules() {
+  if (!CONFIG.SHEETS_CSV_URL) return;
+  try {
+    const res  = await fetch(CONFIG.SHEETS_CSV_URL + '&t=' + Date.now());
+    const text = await res.text();
+    const lines = text.trim().split('\n').slice(1); // skip header
+    const custom = lines
+      .map(l => {
+        const [id, appliesTo, value, contacto, categoria, descripcion] = l.split(',').map(s => s.trim().replace(/^"|"$/g,''));
+        return { id, builtin:false, appliesTo, value, contacto, categoria, descripcion };
+      })
+      .filter(r => r.id && r.value && !DEFAULT_RULES.find(d => d.id === r.id));
+    rules = [...DEFAULT_RULES, ...custom];
+    renderRules();
+    updateRulesBadge();
+  } catch(e) {
+    console.warn('No se pudieron cargar las reglas:', e);
+  }
+}
+
+async function saveRuleRemote(rule) {
+  if (!CONFIG.APPS_SCRIPT_URL) return;
+  try {
+    await fetch(CONFIG.APPS_SCRIPT_URL, {
+      method:'POST', mode:'no-cors',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        sheet: CONFIG.SHEET_TAB,
+        id: rule.id, appliesTo: rule.appliesTo, value: rule.value,
+        contacto: rule.contacto, categoria: rule.categoria, descripcion: rule.descripcion,
+      }),
+    });
+  } catch(e) { console.warn('Save rule remote:', e) }
+}
+
+async function deleteRuleRemote(id) {
+  if (!CONFIG.APPS_SCRIPT_URL) return;
+  try {
+    await fetch(CONFIG.APPS_SCRIPT_URL, {
+      method:'POST', mode:'no-cors',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ sheet: CONFIG.SHEET_TAB, action:'delete', id }),
+    });
+  } catch(e) { console.warn('Delete rule remote:', e) }
+}
+
+function addRule(ruleData) {
+  const value      = ruleData?.value      ?? document.getElementById('rf-value')?.value?.trim();
+  const contacto   = ruleData?.contacto   ?? document.getElementById('rf-contacto')?.value?.trim();
+  const descripcion= ruleData?.descripcion?? document.getElementById('rf-descripcion')?.value?.trim();
+  const categoria  = ruleData?.categoria  ?? document.getElementById('rf-categoria')?.value;
+
+  if (!value) { toast('Ingresá el texto a detectar'); return null; }
+
+  const rule = {
+    id:         `rule_${Date.now()}`,
+    builtin:    false,
+    appliesTo:  'descripcion-contains',
+    value, contacto, categoria, descripcion,
+  };
+  rules.push(rule);
+  renderRules();
+  updateRulesBadge();
+  saveRuleRemote(rule);
+
+  // Clear form
+  ['rf-value','rf-contacto','rf-descripcion'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  toast('✓ Regla guardada');
+  return rule;
+}
+
+function deleteRule(id) {
+  rules = rules.filter(r => r.id !== id);
+  renderRules();
+  updateRulesBadge();
+  deleteRuleRemote(id);
+  if (DATA.length) { applyAllRules(); renderTable(); updateStats(); }
+  toast('Regla eliminada');
+}
+
+function renderRules() {
+  const list = document.getElementById('rules-list');
+  if (!list) return;
+  if (rules.length === 0) {
+    list.innerHTML = '<div style="font-size:12px;color:var(--text3);padding:4px 0">Sin reglas. Agregá una abajo.</div>';
+    return;
+  }
+  list.innerHTML = rules.map(r => `
+    <div class="rule-item">
+      <div class="rule-val">"${esc(r.value)}"</div>
+      <div class="rule-info">→ ${esc(r.contacto || '')} ${r.descripcion ? '/ '+esc(r.descripcion) : ''}</div>
+      ${r.builtin
+        ? '<span class="badge" style="background:var(--navy-bg);color:var(--navy)">Predefinida</span>'
+        : `<span class="badge badge-regla">Custom</span>
+           <button class="btn-secondary btn-sm" style="padding:3px 8px;font-size:11px" onclick="deleteRule('${r.id}')">Eliminar</button>`
+      }
+    </div>
+  `).join('');
+  document.getElementById('rules-detail-count').textContent = `${rules.length} regla${rules.length !== 1 ? 's' : ''}`;
+}
+
+function updateRulesBadge() {
+  const custom = rules.filter(r => !r.builtin).length;
+  document.getElementById('rules-count').textContent = custom;
+}
+
+function toggleRulesPanel() {
+  const det = document.getElementById('rules-details');
+  if (det) det.open = !det.open;
+}
+
+// Apply rules to a single row (returns true if matched)
+function applyRuleToRow(row) {
+  if (row._origen === 'manual' || row.estado === E.NETEADO) return false;
+  const descLow = (row.descripcion || '').toLowerCase();
+  for (const rule of rules) {
+    if (rule.appliesTo === 'descripcion-contains' && descLow.includes(rule.value.toLowerCase())) {
+      if (rule.descripcion) row.odoo_desc = rule.descripcion;
+      if (rule.contacto)    row.odoo_cont = rule.contacto;
+      if (rule.categoria !== 'revisar') row.estado = E.AUTO;
+      row._origen  = 'regla';
+      row._rule_id = rule.id;
+      return true;
+    }
+  }
+  return false;
+}
+
+function applyAllRules() {
+  for (const row of DATA) {
+    if (row._origen === 'manual') continue;
+    row._origen  = undefined;
+    row._rule_id = undefined;
+    applyRuleToRow(row);
+    if (!row._origen) {
+      row._origen = row.estado === E.AUTO ? 'auto' : 'revisar';
+    }
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════════════════════════════════════════
+
+function parseNum(val) {
+  if (val == null || val === '') return 0;
+  if (typeof val === 'number') return val;
+  const s = String(val).replace(/[$\s]/g,'').replace(/\./g,'').replace(',','.');
+  return parseFloat(s) || 0;
+}
+function fmtDate(val) {
+  if (!val) return '';
+  if (val instanceof Date) {
+    const d = String(val.getDate()).padStart(2,'0');
+    const m = String(val.getMonth()+1).padStart(2,'0');
+    return `${d}/${m}/${val.getFullYear()}`;
+  }
+  const s = String(val).trim();
+  if (/^\d{2}\/\d{2}\/\d{4}$/.test(s)) return s;
+  if (/^\d{4}-\d{2}-\d{2}/.test(s)) {
+    const [y,mo,d] = s.split('-'); return `${d}/${mo}/${y}`;
+  }
+  return s;
+}
+function fmtClp(n) {
+  if (n == null) return '';
+  const abs = Math.abs(n);
+  const fmt = Math.round(abs).toString().replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+  return (n >= 0 ? '' : '-') + fmt;
+}
+function esc(s) {
+  return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function parseFecha(s) {
+  if (!s) return 0;
+  const [d,m,y] = s.split('/').map(Number);
+  return new Date(y,m-1,d).getTime();
+}
+function parseNombreNomina(nombre) {
+  const match = nombre.match(/\s(\d{2})\s/);
+  if (match) {
+    const idx = match.index;
+    return { empresa: nombre.slice(0,idx).trim(), referencia: nombre.slice(idx).trim() };
+  }
+  return { empresa: nombre.trim(), referencia:'' };
+}
+function mesSueldos(fechaStr) {
+  const [d,m,y] = fechaStr.split('/').map(Number);
+  if (!y) return '???';
+  if (d <= 7) {
+    const pm = m===1?12:m-1, py = m===1?y-1:y;
+    return `${MESES_ES[pm]} ${py}`;
+  }
+  return `${MESES_ES[m]} ${y}`;
+}
+function mesPrevired(fechaStr) {
+  const [,m,y] = fechaStr.split('/').map(Number);
+  if (!y) return '??-????';
+  if (m===1) return `12-${y-1}`;
+  return `${String(m-1).padStart(2,'0')}-${y}`;
+}
+function importe(tx) { return tx.abono > 0 ? tx.abono : -tx.cargo; }
+function detectarBanco(bancoNombre, cuenta) {
+  const bl = (bancoNombre||'').toLowerCase();
+  if (bl.includes('credito e inversiones')||bl==='bci') return 'BCI';
+  if (bl.includes('mercado pago')) return 'MP';
+  if (bl.includes('bice')) {
+    const cn = (cuenta||'').replace(/[-. ]/g,'');
+    for (const [sfx,alias] of Object.entries(BICE_CUENTAS)) {
+      if (cn.endsWith(sfx.replace('-',''))) return alias;
+    }
+    return 'BICE';
+  }
+  return bancoNombre ? bancoNombre.replace(/\b\w/g,c=>c.toUpperCase()) : 'Otro banco';
+}
+function toast(msg, ms=2600) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'), ms);
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// 1. PARSE CARTOLAS
+// ══════════════════════════════════════════════════════════════════════════════
+
+function parseCartola(buffer, fileName) {
+  const wb = XLSX.read(buffer, { type:'array', cellDates:true });
+  if (!wb.SheetNames.includes('Movimientos')) return [];
+  const ws   = wb.Sheets['Movimientos'];
+  const rows = XLSX.utils.sheet_to_json(ws, { header:1, raw:true, cellDates:true });
+  if (rows.length < 2) return [];
+  const txs = [];
+  for (let i=1; i<rows.length; i++) {
+    const r = rows[i];
+    if (!r || !r.some(c => c!=null && c!=='')) continue;
+    txs.push({
+      fecha:       fmtDate(r[0]),
+      sucursal:    String(r[1]??'').trim(),
+      cuenta:      String(r[2]??'').trim(),
+      alias:       String(r[3]??'').trim(),
+      cartola:     String(r[4]??'').trim(),
+      operacion:   String(r[5]??'').trim(),
+      descripcion: String(r[6]??'').trim(),
+      cargo:       parseNum(r[7]),
+      abono:       parseNum(r[8]),
+      saldo:       parseNum(r[9]),
+      _source:     fileName,
+    });
+  }
+  return txs;
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// 2. PARSE NÓMINAS
+// ══════════════════════════════════════════════════════════════════════════════
+
+function parseNomina(buffer, fileName) {
+  const wb   = XLSX.read(buffer, { type:'array', cellDates:true });
+  const ws   = wb.Sheets[wb.SheetNames[0]];
+  const rows = XLSX.utils.sheet_to_json(ws, { header:1, raw:true, cellDates:true });
+  const meta = {}; let headerIdx = -1;
+  for (let i=0; i<rows.length; i++) {
+    const r = rows[i];
+    if (!r||!r[0]) continue;
+    const key = String(r[0]).trim();
+    if (key==='Convenio')        { meta.nomina = parseInt(r[3])||0; }
+    else if (key==='Nombre Nómina') { meta.nombre=String(r[1]??'').trim(); meta.monto=Math.round(parseNum(r[3])); }
+    else if (key==='Cantidad Pagos'){ meta.fecha = fmtDate(r[3]); }
+    else if (key==='Concepto Pago') { meta.concepto=String(r[1]??'').trim(); meta.estado=String(r[3]??'').trim(); }
+    else if (key==='Rut')           { headerIdx=i; break; }
+  }
+  if (!meta.nomina || headerIdx<0) return null;
+  const pagos = [];
+  for (let i=headerIdx+1; i<rows.length; i++) {
+    const r = rows[i];
+    if (!r||!r.some(c=>c!=null&&c!=='')) continue;
+    const rut    = String(r[0]??'').trim();
+    const nombre = String(r[1]??'').trim();
+    const cuenta = String(r[3]??'').trim();
+    const banco  = String(r[4]??'').trim();
+    const monto  = Math.round(parseNum(r[6]));
+    const estado = String(r[8]??'').trim();
+    const motivo = String(r[9]??'').trim();
+    if (!rut&&!nombre) continue;
+    const {empresa,referencia} = parseNombreNomina(nombre);
+    pagos.push({ rut,nombre,empresa,banco,cuenta,monto,estado,motivo,referencia });
+  }
+  return {...meta, pagos};
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// 3. DEDUPLICAR
+// ══════════════════════════════════════════════════════════════════════════════
+
+function deduplicate(txs) {
+  const seen=new Set(), unique=[];
+  for (const tx of txs) {
+    const key=[tx.fecha,tx.cartola,tx.operacion,tx.descripcion,tx.cargo,tx.abono,tx.saldo].join('|');
+    if (!seen.has(key)) { seen.add(key); unique.push(tx); }
+  }
+  unique.sort((a,b)=>{
+    const da=parseFecha(a.fecha), db=parseFecha(b.fecha);
+    return da!==db ? da-db : a.cartola.localeCompare(b.cartola);
+  });
+  return unique;
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// 4. CLASIFICAR
+// ══════════════════════════════════════════════════════════════════════════════
+
+function classify(txs) {
+  return txs.map((tx,i) => {
+    const row = {
+      ...tx,
+      id:         `row_${String(i).padStart(4,'0')}`,
+      tipo:       T.DESCONOCIDO,
+      estado:     E.REVISAR,
+      odoo_desc:  '',
+      odoo_cont:  '',
+      odoo_ref:   tx.descripcion,
+      odoo_imp:   importe(tx),
+      review_hint:'',
+      review_data:{},
+      notas:      '',
+      _origen:    'revisar',
+    };
+    classifyRow(row);
+    return row;
+  });
+}
+
+function classifyRow(row) {
+  const desc = row.descripcion.toLowerCase();
+  const RUT  = RUT_EMPRESA;
+
+  if (desc.includes(`rut ${RUT}`) && desc.includes('transferencia otro banco de rut')) {
+    row.tipo=T.TRANSF_INTERNA; row.estado=E.REVISAR;
+    row.odoo_desc = row.abono>0 ? 'Transf. de ??? a Bco. Estado' : 'Transf. de Bco. Estado a ???';
+    row.review_hint = row.abono>0 ? 'Seleccionar banco de origen' : 'Seleccionar banco de destino';
+    row.review_data = {bancos:Object.keys(BANCOS_PROPIOS)};
+    return;
+  }
+  const mProv = desc.match(/provision en linea convenio proveedores.*nomina\s+(\d+)/);
+  if (mProv) {
+    const nNum=parseInt(mProv[1]);
+    row.tipo=T.PROV_PROV; row.estado=E.REVISAR;
+    row.review_hint=`Cargar Detalle Nómina N° ${nNum} y re-procesar`;
+    row.review_data={nomina_num:nNum}; row.notas=`Nomina ${nNum}`;
+    return;
+  }
+  if (desc.includes('provision en linea convenio remuneraciones')) {
+    row.tipo=T.PROV_REM; row.estado=E.AUTO; row._origen='auto';
+    const periodo=mesSueldos(row.fecha);
+    row.odoo_desc=`Sueldos ${periodo}`;
+    row.review_hint='Verificar período de sueldos';
+    row.review_data={periodo_sugerido:periodo};
+    return;
+  }
+  if (desc.includes('rechazo pago proveedores')) {
+    row.tipo=T.RECHAZO_PROV; row.estado=E.REVISAR;
+    row.review_hint='Rechazo de pago — se netea con la provisión correspondiente';
+    return;
+  }
+  if (desc.includes('comision por pago de remuneraciones')) {
+    row.tipo=T.COMISION_REM; row.estado=E.AUTO; row._origen='auto';
+    row.odoo_desc='Comisiones bancarias'; row.odoo_cont='Banco del Estado de Chile';
+    return;
+  }
+  if (desc.trim()==='abono') {
+    row.tipo=T.ABONO_COMISION; row.estado=E.AUTO; row._origen='auto';
+    row.odoo_desc='Comisiones bancarias'; row.odoo_cont='Banco del Estado de Chile';
+    return;
+  }
+  if (desc.startsWith('pac credito')) {
+    row.tipo=T.PAC_CREDITO; row.estado=E.REVISAR;
+    row.review_hint=`Ingresar split Capital / Intereses (total: ${fmtClp(Math.abs(row.odoo_imp))})`;
+    row.review_data={total:Math.abs(row.odoo_imp)};
+    return;
+  }
+  if (desc.includes('cambiosinternacionales')) {
+    row.tipo=T.CAMBIO_INTL; row.estado=E.REVISAR;
+    row.odoo_desc='Pago Intercompany';
+    row.review_hint='Completar Contacto (ej: Fudo Group LLC)';
+    return;
+  }
+  if (PREVIRED_KEYWORDS.some(kw=>desc.includes(kw)) || desc.includes('pago en linea de servicios')) {
+    row.tipo=T.PREVIRED; row.estado=E.REVISAR;
+    row.odoo_desc='Pago - Previred';
+    row.odoo_ref='Pago en linea de servicios - PREVIRED';
+    row.review_hint='Confirmar si es Previred. Si sí, agrupar con otros del mismo día.';
+    row.review_data={periodo_sugerido:mesPrevired(row.fecha)};
+    return;
+  }
+  const mPers = row.descripcion.toLowerCase().match(/transferencia otro banco de rut ([\d.]+[-][\dkK]) (.+)/);
+  if (mPers && mPers[1]!==RUT) {
+    const nombre = row.descripcion.split(' ').slice(6).join(' ')||row.descripcion;
+    const nt     = nombre.replace(/\b\w/g,c=>c.toUpperCase());
+    row.tipo=T.TRANSF_PERSONA; row.estado=E.REVISAR;
+    row.review_hint=`Transferencia de persona externa (${nt.trim()}). Validar: ¿devolución de sueldo?`;
+    row.review_data={nombre_persona:nt.trim()};
+    return;
+  }
+  const mTerc = row.descripcion.toLowerCase().match(/transferencia otro banco a rut ([\d.]+[-][\dkK]) (.+)/);
+  if (mTerc) {
+    const empresa = mTerc[2].replace(/\b\w/g,c=>c.toUpperCase()).trim();
+    row.tipo=T.TRANSF_TERCERO; row.estado=E.REVISAR;
+    row.odoo_desc='Pago a proveedor'; row.odoo_cont=empresa;
+    row.review_hint=`Completar descripción. Contacto sugerido: ${empresa}`;
+    row.review_data={empresa_sugerida:empresa};
+    return;
+  }
+  row.tipo=T.DESCONOCIDO; row.estado=E.REVISAR;
+  row.review_hint='Tipo no reconocido — completar manualmente';
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// 5. EXPANDIR PROVISIONES
+// ══════════════════════════════════════════════════════════════════════════════
+
+function expandProveedores(rows, nominas) {
+  const RUT_NORM = RUT_EMPRESA.replace(/\./g,'').toLowerCase();
+  const result   = [];
+  for (const row of rows) {
+    if (row.tipo!==T.PROV_PROV) { result.push(row); continue; }
+    const nNum = row.review_data?.nomina_num;
+    if (!nNum||!nominas[nNum]) { result.push(row); continue; }
+    const pagos = nominas[nNum].pagos;
+    const rutsNorm = pagos.map(p=>p.rut.replace(/\./g,'').toLowerCase());
+    const esInterna = rutsNorm.length>0 && rutsNorm.every(r=>r===RUT_NORM);
+    if (esInterna) {
+      const banco = detectarBanco(pagos[0].banco, pagos[0].cuenta);
+      result.push({...row, tipo:T.TRANSF_INTERNA, estado:E.AUTO, _origen:'auto',
+        odoo_desc:`Transf. Bco. Estado a ${banco}`, odoo_cont:'', review_hint:'',
+        notas:`Nomina interna ${nNum} → ${banco}`});
+      continue;
+    }
+    const grupos = {};
+    for (const p of pagos) {
+      if (p.estado.toLowerCase()==='rechazado') continue;
+      const key = `${p.empresa}|||${p.referencia}`;
+      if (!grupos[key]) grupos[key]={empresa:p.empresa,referencia:p.referencia,monto:0};
+      grupos[key].monto += p.monto;
+    }
+    for (const g of Object.values(grupos)) {
+      result.push({...row,
+        id:`${row.id}_${g.empresa.slice(0,10)}`,
+        tipo:T.PROV_PROV, estado:E.AUTO, _origen:'auto',
+        odoo_desc:`Pago - ${g.empresa}`, odoo_cont:g.empresa,
+        odoo_ref:`${g.empresa} ${g.referencia}`.trim(),
+        odoo_imp:-g.monto, review_hint:'', notas:`Nomina ${nNum}`,
+      });
+    }
+  }
+  return result;
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// 6. NETEAR RECHAZOS
+// ══════════════════════════════════════════════════════════════════════════════
+
+function netRechazos(rows) {
+  const exp = new Set();
+  for (const r of rows) {
+    if (r.tipo===T.PROV_PROV && r.estado===E.AUTO) {
+      const m = (r.notas||'').toLowerCase().match(/nomina\s+(\d+)/);
+      if (m) exp.add(parseInt(m[1]));
+    }
+  }
+  for (const r of rows) {
+    if (r.tipo===T.RECHAZO_PROV && exp.size>0) {
+      r.estado=E.NETEADO; r._origen='neteado';
+      r.notas='Neteado contra provisión de proveedores expandida';
+    }
+  }
+  return rows;
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// PIPELINE PRINCIPAL
+// ══════════════════════════════════════════════════════════════════════════════
+
+let DATA = [];
+let filterActivo = 'all';
+
+async function runPipeline() {
+  if (loadedCartolas.length===0) return;
+  const btn=document.getElementById('btn-procesar');
+  btn.disabled=true; btn.textContent='Procesando...';
+  showStatus('info','⏳ Leyendo cartolas...');
+  await new Promise(r=>setTimeout(r,60));
+
+  try {
+    let allTxs=[];
+    for (const f of loadedCartolas) allTxs=allTxs.concat(parseCartola(f.buffer,f.name));
+
+    showStatus('info',`⏳ ${allTxs.length} movimientos. Parseando nóminas...`);
+    await new Promise(r=>setTimeout(r,40));
+
+    const nominas={};
+    for (const f of loadedNominas) {
+      const n=parseNomina(f.buffer,f.name);
+      if (n&&n.nomina) nominas[n.nomina]=n;
+    }
+
+    const unique = deduplicate(allTxs);
+    let rows     = classify(unique);
+    rows         = expandProveedores(rows, nominas);
+    rows         = netRechazos(rows);
+
+    // Assign _origen where missing
+    for (const r of rows) {
+      if (!r._origen) r._origen = r.estado===E.AUTO ? 'auto' : r.estado===E.NETEADO ? 'neteado' : 'revisar';
+    }
+
+    DATA = rows;
+    applyAllRules();
+
+    const auto    = DATA.filter(r=>r._origen==='auto').length;
+    const regla   = DATA.filter(r=>r._origen==='regla').length;
+    const revisar = DATA.filter(r=>r.estado===E.REVISAR).length;
+    const neteado = DATA.filter(r=>r.estado===E.NETEADO).length;
+    const dup     = allTxs.length-unique.length;
+
+    showStatus('ok',`✓ ${DATA.length} filas — ${auto} auto, ${regla} regla, ${revisar} revisar, ${neteado} neteadas${dup?` | ${dup} dup. eliminados`:''}`);
+    await new Promise(r=>setTimeout(r,600));
+
+    const first = DATA.find(r=>r.alias);
+    if (first) {
+      document.querySelector('.topbar-title').textContent = `Extracto Banco Estado · ${first.alias||first.cuenta}`;
+    }
+
+    // Step dots
+    document.getElementById('step-2').className='step done';
+    document.getElementById('step-3').className='step active';
+
+    document.getElementById('upload-panel').style.display='none';
+    document.getElementById('review-panel').style.display='block';
+    filterActivo='all';
+    renderTable();
+    updateStats();
+
+  } catch(e) {
+    console.error(e);
+    showStatus('error',`❌ ${e.message}`);
+  } finally {
+    btn.disabled=loadedCartolas.length===0;
+    btn.textContent='Procesar →';
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// FILE MANAGEMENT
+// ══════════════════════════════════════════════════════════════════════════════
+
+let loadedCartolas=[], loadedNominas=[];
+
+function addFiles(tipo, fileList) {
+  const arr = tipo==='cartolas' ? loadedCartolas : loadedNominas;
+  const proms = [];
+  for (const f of fileList) {
+    if (arr.find(x=>x.name===f.name)) continue;
+    proms.push(readArrayBuffer(f).then(buf=>arr.push({name:f.name,size:f.size,buffer:buf})));
+  }
+  Promise.all(proms).then(()=>{ renderFileList(tipo); updateProcesarBtn(); });
+}
+function readArrayBuffer(file) {
+  return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=e=>res(e.target.result); r.onerror=rej; r.readAsArrayBuffer(file); });
+}
+function removeFile(tipo, name) {
+  if (tipo==='cartolas') loadedCartolas=loadedCartolas.filter(f=>f.name!==name);
+  else                   loadedNominas =loadedNominas.filter(f=>f.name!==name);
+  renderFileList(tipo);
+  updateProcesarBtn();
+}
+function renderFileList(tipo) {
+  const arr = tipo==='cartolas' ? loadedCartolas : loadedNominas;
+  const el  = document.getElementById(`list-${tipo}`);
+  const dz  = document.getElementById(`dz-${tipo}`);
+  dz.classList.toggle('has-files', arr.length>0);
+  el.innerHTML = arr.map(f=>`
+    <div class="file-item">
+      <span>📄</span>
+      <span class="fi-name">${esc(f.name)}</span>
+      <span class="fi-size">${(f.size/1024).toFixed(0)} KB</span>
+      <button class="fi-remove" onclick="removeFile('${tipo}','${esc(f.name)}')">✕</button>
+    </div>`).join('');
+}
+function updateProcesarBtn() {
+  document.getElementById('btn-procesar').disabled = loadedCartolas.length===0;
+}
+function showStatus(cls,msg) {
+  const el=document.getElementById('proc-status');
+  el.className=`proc-status ${cls}`; el.textContent=msg; el.style.display='block';
+}
+function dzDragOver(e,tipo){e.preventDefault();document.getElementById(`dz-${tipo}`).classList.add('drag-over')}
+function dzDragLeave(tipo){document.getElementById(`dz-${tipo}`).classList.remove('drag-over')}
+function dzDrop(e,tipo){e.preventDefault();document.getElementById(`dz-${tipo}`).classList.remove('drag-over');addFiles(tipo,e.dataTransfer.files)}
+function goToUpload(){
+  document.getElementById('review-panel').style.display='none';
+  document.getElementById('upload-panel').style.display='block';
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// REVIEW TABLE
+// ══════════════════════════════════════════════════════════════════════════════
+
+function visibleRows() {
+  if (filterActivo==='all') return DATA;
+  return DATA.filter(r => r._origen===filterActivo ||
+    (filterActivo==='revisar' && r.estado===E.REVISAR && r._origen!=='regla') ||
+    (filterActivo==='neteado' && r.estado===E.NETEADO));
+}
+
+function setFilter(f) {
+  filterActivo=f;
+  document.querySelectorAll('.pill').forEach(p=>{
+    p.className=`pill${p.dataset.filter===f ? ' active-'+f : ''}`;
+  });
+  renderTable();
+}
+
+function renderTable() {
+  const tbody=document.getElementById('tbody');
+  tbody.innerHTML='';
+  for (const row of visibleRows()) tbody.appendChild(renderRow(row));
+  updateSelCount();
+}
+
+function rowClass(row) {
+  if (row.estado===E.NETEADO)          return 'row-neteado';
+  if (row._origen==='regla')           return 'row-regla';
+  if (row._origen==='manual')          return 'row-manual';
+  if (row.estado===E.AUTO)             return 'row-auto';
+  return 'row-revisar';
+}
+
+function origenBadge(row) {
+  if (row.estado===E.NETEADO) return '<span class="badge badge-neteado">neteada</span>';
+  if (row._origen==='regla')  return '<span class="badge badge-regla">regla</span>';
+  if (row._origen==='manual') return '<span class="badge badge-manual">manual</span>';
+  if (row.estado===E.AUTO)    return '<span class="badge badge-auto">auto</span>';
+  return '<span class="badge badge-revisar">revisar</span>';
+}
+
+function renderRow(row) {
+  const tr = document.createElement('tr');
+  tr.id        = `tr_${row.id}`;
+  tr.className = rowClass(row);
+  tr.dataset.id = row.id;
+
+  const isNeteado = row.estado===E.NETEADO;
+  const tipColor  = TIPO_COLORS[row.tipo]||'#757575';
+  const tipLabel  = TIPO_LABELS[row.tipo]||row.tipo;
+  const impColor  = row.odoo_imp>=0 ? 'pos' : 'neg';
+
+  const desc = esc(row.odoo_desc||'');
+  const cont = esc(row.odoo_cont||'');
+  const ref  = esc(row.odoo_ref||'');
+
+  const editCells = isNeteado
+    ? `<td>${desc}</td><td>${cont}</td><td>${ref}</td>`
+    : `<td><span class="editable" contenteditable="true" id="e_desc_${row.id}"
+          onfocusout="onEditOut('${row.id}','desc',this)">${desc}</span></td>
+       <td><span class="editable" contenteditable="true" id="e_cont_${row.id}"
+          onfocusout="onEditOut('${row.id}','cont',this)">${cont}</span></td>
+       <td><span class="editable" contenteditable="true" id="e_ref_${row.id}"
+          onfocusout="onEditOut('${row.id}','ref',this)">${ref}</span></td>`;
+
+  const hint = row.review_hint && !isNeteado
+    ? `<div style="font-size:10px;color:var(--warn);margin-top:3px;font-family:var(--mono)">⚠ ${esc(row.review_hint)}</div>`
+    : '';
+
+  // Special controls
+  let extra = '';
+  if (!isNeteado) {
+    if (row.tipo===T.TRANSF_INTERNA && row.estado===E.REVISAR) {
+      const opts = Object.keys(BANCOS_PROPIOS).map(b=>`<option value="${b}">${b}</option>`).join('');
+      extra = `<div style="margin-top:4px">
+        <select style="font-size:11px;padding:3px 6px;border:1px solid var(--border2);border-radius:5px;font-family:var(--mono)"
+          onchange="applyBanco('${row.id}',this.value)">
+          <option value="">— banco —</option>${opts}
+        </select></div>`;
+    }
+    if (row.tipo===T.PAC_CREDITO && !row._pac_split) {
+      const tot = Math.abs(row.odoo_imp||0);
+      extra = `<div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:6px;align-items:center">
+        <span style="font-size:10px;color:var(--text3);font-family:var(--mono)">Capital</span>
+        <input type="number" id="pac_cap_${row.id}" placeholder="0" min="0" max="${tot}"
+          style="width:100px;padding:3px 6px;border:1px solid var(--border2);border-radius:5px;font-size:11px;font-family:var(--mono)"
+          oninput="updatePac('${row.id}',${tot})">
+        <span style="font-size:10px;color:var(--text3);font-family:var(--mono)">Int.</span>
+        <input type="number" id="pac_int_${row.id}" placeholder="0" readonly
+          style="width:100px;padding:3px 6px;border:1px solid var(--border2);border-radius:5px;font-size:11px;font-family:var(--mono);background:var(--bg2)">
+        <button id="pac_btn_${row.id}" onclick="splitPac('${row.id}')" disabled
+          style="font-size:11px;padding:3px 10px;border:1px solid var(--red);border-radius:5px;background:transparent;color:var(--red);cursor:pointer;font-family:var(--mono);opacity:.4;transition:opacity .15s"
+          title="Ingresá el Capital primero">
+          ✦ Separar
+        </button>
+      </div>`;
+    }
+    if (row.tipo===T.PROV_REM) {
+      extra = `<div style="margin-top:4px">
+        <input type="text" id="rem_per_${row.id}" value="${esc(row.review_data?.periodo_sugerido||'')}"
+          style="font-size:11px;padding:3px 8px;border:1px solid var(--border2);border-radius:5px;width:140px;font-family:var(--mono)"
+          oninput="var el=document.getElementById('e_desc_${row.id}');if(el)el.textContent='Sueldos '+this.value;onEditOut('${row.id}','desc',el)">
+      </div>`;
+    }
+  }
+
+  tr.innerHTML = `
+    <td>${isNeteado?'':
+      `<input type="checkbox" id="chk_${row.id}" onchange="onCheckboxChange('${row.id}',this)">`
+    }</td>
+    <td style="white-space:nowrap;font-family:var(--mono);font-size:11px">${esc(row.fecha)}</td>
+    <td style="max-width:280px">
+      <div style="font-size:11px;color:var(--text2)">${esc(row.descripcion)}</div>
+      ${hint}${extra}
+    </td>
+    <td><span style="background:${tipColor};color:#fff;font-family:var(--mono);font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px;white-space:nowrap">${esc(tipLabel)}</span></td>
+    ${editCells}
+    <td class="num ${impColor}" style="font-family:var(--mono);font-size:11px">${
+      row._pac_split && !isNeteado
+        ? `<span class="editable" contenteditable="true" id="e_imp_${row.id}"
+              style="display:inline-block;min-width:60px;text-align:right"
+              onfocusout="onEditImp('${row.id}',this)">${fmtClp(row.odoo_imp)}</span>`
+        : fmtClp(row.odoo_imp)
+    }</td>
+    <td>${origenBadge(row)}</td>
+    <td>${isNeteado?'':
+      `<button class="btn-secondary btn-sm" style="font-size:10px;padding:3px 8px" onclick="openFix('${row.id}')">Corregir</button>`
+    }</td>
+  `;
+  return tr;
+}
+
+// Inline edit focusout
+function onEditOut(id, field, el) {
+  const row = DATA.find(r=>r.id===id);
+  if (!row) return;
+  const val = el ? el.textContent.trim() : '';
+  if (field==='desc') row.odoo_desc=val;
+  if (field==='cont') row.odoo_cont=val;
+  if (field==='ref')  row.odoo_ref=val;
+  if (val && row.estado===E.REVISAR) {
+    row.estado  = E.AUTO;
+    row._origen = 'manual';
+    const tr = document.getElementById(`tr_${id}`);
+    if (tr) tr.className = 'row-manual';
+    const badge = tr?.querySelector('.badge');
+    if (badge) { badge.className='badge badge-manual'; badge.textContent='manual'; }
+    updateStats();
+  }
+}
+
+function updatePac(id, total) {
+  const capEl = document.getElementById(`pac_cap_${id}`);
+  const intEl = document.getElementById(`pac_int_${id}`);
+  const btn   = document.getElementById(`pac_btn_${id}`);
+  const cap   = parseFloat(capEl?.value||0);
+  const int   = total - cap;
+  if (intEl) intEl.value = (cap > 0 && int >= 0) ? int.toFixed(0) : '';
+  if (btn) {
+    const valid = cap > 0 && cap <= total && int >= 0;
+    btn.disabled = !valid;
+    btn.style.opacity = valid ? '1' : '.4';
+    btn.style.cursor  = valid ? 'pointer' : 'not-allowed';
+  }
+}
+
+function onEditImp(id, el) {
+  const row = DATA.find(r=>r.id===id);
+  if (!row || !el) return;
+  // Strip formatting: remove $ . (thousands) and parse
+  const raw = el.textContent.replace(/\./g,'').replace(/[$\s]/g,'').replace(/,/g,'.').trim();
+  const val = parseFloat(raw);
+  if (!isNaN(val)) {
+    row.odoo_imp = val;
+    el.textContent = fmtClp(val);
+    const td = el.closest('td');
+    if (td) { td.className = 'num ' + (val>=0?'pos':'neg'); }
+    updateStats();
+  }
+}
+
+function applyBanco(id, banco) {
+  const row = DATA.find(r=>r.id===id);
+  if (!banco||!row) return;
+  const desc = row.odoo_imp>=0 ? `Transf. de ${banco} a Bco. Estado` : `Transf. de Bco. Estado a ${banco}`;
+  row.odoo_desc = desc; row.estado=E.AUTO; row._origen='manual';
+  const el = document.getElementById(`e_desc_${id}`);
+  if (el) el.textContent=desc;
+  const tr = document.getElementById(`tr_${id}`);
+  if (tr) tr.className='row-manual';
+  updateStats();
+}
+
+function splitPac(id) {
+  const orig = DATA.find(r=>r.id===id);
+  if (!orig) return;
+  const tot = Math.abs(orig.odoo_imp||0);
+  const cap = parseFloat(document.getElementById(`pac_cap_${id}`)?.value||0);
+  const int = tot - cap;
+  if (cap <= 0 || cap > tot || int < 0) return;
+  const ref = document.getElementById(`e_ref_${id}`)?.textContent?.trim() || orig.odoo_ref;
+  const capRow = {
+    ...orig,
+    id: id+'_capital',
+    odoo_desc: 'Pago de crédito (Capital)',
+    odoo_cont: '',
+    odoo_imp: -cap,
+    odoo_ref: ref,
+    estado: E.AUTO,
+    _origen: 'manual',
+    _pac_split: true,
+    review_hint: null,
+    review_data: null,
+  };
+  const intRow = {
+    ...orig,
+    id: id+'_intereses',
+    odoo_desc: 'Pago de crédito (Intereses)',
+    odoo_cont: '',
+    odoo_imp: -int,
+    odoo_ref: ref,
+    estado: E.AUTO,
+    _origen: 'manual',
+    _pac_split: true,
+    review_hint: null,
+    review_data: null,
+  };
+  orig.estado = E.NETEADO;
+  orig._pac_split = true;
+  const idx = DATA.indexOf(orig);
+  DATA.splice(idx+1, 0, capRow, intRow);
+  renderTable();
+  updateStats();
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// GROUPING — cualquier tipo de fila
+// ══════════════════════════════════════════════════════════════════════════════
+
+let _groupTarget = []; // rows being grouped
+
+function onCheckboxChange(id, chk) {
+  const tr = document.getElementById(`tr_${id}`);
+  tr?.classList.toggle('row-sel', chk.checked);
+  updateSelCount();
+}
+function toggleAllCheckboxes(masterChk) {
+  visibleRows().filter(r=>r.estado!==E.NETEADO).forEach(r=>{
+    const chk=document.getElementById(`chk_${r.id}`);
+    if (chk) { chk.checked=masterChk.checked; document.getElementById(`tr_${r.id}`)?.classList.toggle('row-sel',masterChk.checked); }
+  });
+  updateSelCount();
+}
+function updateSelCount() {
+  const sel = DATA.filter(r=>document.getElementById(`chk_${r.id}`)?.checked);
+  const total = sel.reduce((s,r)=>s+(r.odoo_imp||0), 0);
+  document.getElementById('sel-count').textContent = sel.length;
+  const totalEl = document.getElementById('sel-total');
+  if (totalEl) totalEl.textContent = sel.length > 0 ? ` · ${fmtClp(total)}` : '';
+  document.getElementById('btn-group').disabled = sel.length < 2;
+}
+function openGroupModal() {
+  _groupTarget = DATA.filter(r=>document.getElementById(`chk_${r.id}`)?.checked);
+  if (_groupTarget.length<2) { toast('Seleccioná al menos 2 filas'); return; }
+
+  const total   = _groupTarget.reduce((s,r)=>s+r.odoo_imp,0);
+  const fechas  = [...new Set(_groupTarget.map(r=>r.fecha))];
+  const tipos   = [...new Set(_groupTarget.map(r=>r.tipo))];
+
+  // Suggest description
+  const tipoSug = tipos.length===1 ? (TIPO_LABELS[tipos[0]]||tipos[0]) : 'Varias transacciones';
+  const dateSug = fechas.length===1 ? fechas[0] : `${fechas[0]} … ${fechas.at(-1)}`;
+
+  document.getElementById('group-summary').innerHTML =
+    `${_groupTarget.length} filas · ${fechas.length===1?'Fecha: '+fechas[0]:'Fechas distintas'} · Total: <strong>${fmtClp(total)}</strong>`;
+  document.getElementById('group-desc').value = _groupTarget[0].odoo_desc || tipoSug;
+  document.getElementById('group-cont').value = _groupTarget[0].odoo_cont || '';
+
+  document.getElementById('group-overlay').classList.add('open');
+}
+function closeGroup(e) {
+  if (e && e.target!==document.getElementById('group-overlay')) return;
+  document.getElementById('group-overlay').classList.remove('open');
+}
+function confirmGroup() {
+  const desc = document.getElementById('group-desc').value.trim();
+  const cont = document.getElementById('group-cont').value.trim();
+  if (!desc) { toast('Ingresá una descripción'); return; }
+
+  const total = _groupTarget.reduce((s,r)=>s+r.odoo_imp,0);
+  const first = _groupTarget[0];
+
+  const newRow = {
+    ...first,
+    id:         `grp_${Date.now()}`,
+    tipo:       first.tipo,
+    estado:     E.AUTO,
+    _origen:    'manual',
+    odoo_desc:  desc,
+    odoo_cont:  cont,
+    odoo_ref:   desc,
+    odoo_imp:   total,
+    review_hint:'',
+    notas:      `Agrupado de ${_groupTarget.length} filas`,
+  };
+
+  _groupTarget.forEach(r=>{
+    const orig=DATA.find(d=>d.id===r.id);
+    if (orig){ orig.estado=E.NETEADO; orig._origen='neteado'; }
+  });
+
+  const lastIdx=DATA.findIndex(d=>d.id===_groupTarget.at(-1).id);
+  DATA.splice(lastIdx+1, 0, newRow);
+
+  document.getElementById('group-overlay').classList.remove('open');
+  renderTable();
+  updateStats();
+  toast(`✓ ${_groupTarget.length} filas agrupadas`);
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// CORRECTION MODAL
+// ══════════════════════════════════════════════════════════════════════════════
+
+let _fixRowId = null;
+
+function openFix(id) {
+  _fixRowId = id;
+  const row = DATA.find(r=>r.id===id);
+  if (!row) return;
+  document.getElementById('fix-ref-text').textContent = row.descripcion;
+  document.getElementById('fix-desc').value  = row.odoo_desc  || '';
+  document.getElementById('fix-cont').value  = row.odoo_cont  || '';
+  document.getElementById('fix-match').value = row.descripcion.slice(0,60);
+  document.getElementById('fix-cat').value   = 'pago';
+  document.getElementById('fix-overlay').classList.add('open');
+}
+function closeFix(e) {
+  if (e && e.target!==document.getElementById('fix-overlay')) return;
+  document.getElementById('fix-overlay').classList.remove('open');
+  _fixRowId=null;
+}
+function applyFix(row) {
+  row.odoo_desc = document.getElementById('fix-desc').value.trim() || row.odoo_desc;
+  row.odoo_cont = document.getElementById('fix-cont').value.trim() || row.odoo_cont;
+  row.estado    = E.AUTO;
+  row._origen   = 'manual';
+  const el = document.getElementById(`e_desc_${row.id}`);
+  if (el) el.textContent = row.odoo_desc;
+  const el2 = document.getElementById(`e_cont_${row.id}`);
+  if (el2) el2.textContent = row.odoo_cont;
+  const tr = document.getElementById(`tr_${row.id}`);
+  if (tr) tr.className='row-manual';
+  const badge = tr?.querySelector('.badge');
+  if (badge) { badge.className='badge badge-manual'; badge.textContent='manual'; }
+  updateStats();
+}
+function fixOnce() {
+  const row = DATA.find(r=>r.id===_fixRowId);
+  if (!row) return;
+  applyFix(row);
+  document.getElementById('fix-overlay').classList.remove('open');
+  _fixRowId=null;
+  toast('✓ Corregido (solo esta vez)');
+}
+function fixAndSaveRule() {
+  const row = DATA.find(r=>r.id===_fixRowId);
+  if (!row) return;
+  const matchVal  = document.getElementById('fix-match').value.trim();
+  const desc      = document.getElementById('fix-desc').value.trim();
+  const cont      = document.getElementById('fix-cont').value.trim();
+  const categoria = document.getElementById('fix-cat').value;
+  if (!matchVal) { toast('Ingresá el texto a detectar'); return; }
+
+  applyFix(row);
+  const rule = addRule({ value:matchVal, contacto:cont, descripcion:desc, categoria });
+  if (rule) {
+    applyAllRules();
+    renderTable();
+  }
+  document.getElementById('fix-overlay').classList.remove('open');
+  _fixRowId=null;
+  toast('⚡ Regla guardada y aplicada');
+  if (!document.getElementById('rules-details')?.open) {
+    document.getElementById('upload-panel').style.display!=='none' &&
+    document.getElementById('rules-details')?.setAttribute('open','');
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// STATS
+// ══════════════════════════════════════════════════════════════════════════════
+
+function updateStats() {
+  const auto    = DATA.filter(r=>r._origen==='auto').length;
+  const regla   = DATA.filter(r=>r._origen==='regla').length;
+  const manual  = DATA.filter(r=>r._origen==='manual').length;
+  const revisar = DATA.filter(r=>r.estado===E.REVISAR && r._origen!=='regla').length;
+  const neteado = DATA.filter(r=>r.estado===E.NETEADO).length;
+  const total   = DATA.length;
+
+  document.getElementById('cnt-auto').textContent    = auto;
+  document.getElementById('cnt-regla').textContent   = regla;
+  document.getElementById('cnt-revisar').textContent = revisar;
+  document.getElementById('cnt-neteado').textContent = neteado;
+
+  const set = (id,v) => { const el=document.getElementById(id); if(el) el.textContent=v; };
+  set('pcnt-all',    total);
+  set('pcnt-auto',   auto);
+  set('pcnt-regla',  regla);
+  set('pcnt-manual', manual);
+  set('pcnt-revisar',revisar);
+  set('pcnt-neteado',neteado);
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// EXPORT CSV
+// ══════════════════════════════════════════════════════════════════════════════
+
+function exportCSV() {
+  const out=[];
+  for (const row of DATA) {
+    if (row.estado===E.NETEADO) continue;
+    if (row.tipo===T.PAC_CREDITO && !row._pac_split) {
+      // PAC_CREDITO not yet split — skip, user should split first
+      continue;
+    }
+    const desc = document.getElementById(`e_desc_${row.id}`)?.textContent?.trim() ?? row.odoo_desc ?? '';
+    const cont = document.getElementById(`e_cont_${row.id}`)?.textContent?.trim() ?? row.odoo_cont ?? '';
+    const ref  = document.getElementById(`e_ref_${row.id}`)?.textContent?.trim()  ?? row.odoo_ref  ?? '';
+    if (!desc.trim()) continue;
+    out.push({fecha:row.fecha,desc,cont,ref,imp:row.odoo_imp});
+  }
+  if (!out.length) { toast('Sin filas para exportar'); return; }
+  const lines=['Fecha;Descripción;Contacto;Referencia;Importe;'];
+  for (const r of out) lines.push([r.fecha,r.desc,r.cont,r.ref,r.imp!=null?fmtClp(r.imp):''].join(';')+';');
+  const blob=new Blob(['﻿'+lines.join('\n')],{type:'text/csv;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download='banco_estado_odoo.csv'; a.click();
+  URL.revokeObjectURL(url);
+  toast(`✓ ${out.length} filas exportadas`);
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════════════════════════════
+
+document.addEventListener('DOMContentLoaded', ()=>{
+  renderRules();
+  updateRulesBadge();
+  loadCustomRules();
+});
+</script>
+</body>
+</html>
