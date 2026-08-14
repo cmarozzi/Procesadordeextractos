@@ -607,12 +607,14 @@ function classifyRow(raw, country) {
   }
 
   // ── 2. SmartPos Sales ────────────────────────────────────
-  else if (numId.startsWith('TFP:') || detLC.startsWith('tfp:') ||
-           detLC.includes('terminal fudo') || detLC.includes(' tfp') || detLC.includes('tpf:')) {
+  // Acepta TFP: y TPF: en cualquier orden, en numId o en detalle
+  else if (numId.match(/^T[FP][PF]:/i) || detLC.match(/t[fp][pf]:/) ||
+           detLC.includes('terminal fudo') || detLC.includes(' tfp')) {
     type = 'SmartPos Sales';
-    if (numId.startsWith('TFP:'))        dashId = (numId.split(':')[1] || '').trim();
-    else if (detLC.startsWith('tfp:'))   dashId = (detLC.split(':')[1] || '').trim();
-    if (dashId) { const m = accounts.byId[dashId]; if (m) { nombre = m.nombre; } }
+    const src = numId.match(/^T[FP][PF]:/i) ? numId : detalle;
+    const mId = src.match(/T[FP][PF]:(\d+)/i);
+    if (mId) dashId = mId[1].trim();
+    if (dashId) { const acc = accounts.byId[dashId]; if (acc) { nombre = acc.nombre; } }
   }
 
   // ── 3. Payouts ───────────────────────────────────────────
@@ -758,6 +760,14 @@ async function runProcess() {
 
     setProgress(90, 'Armando resultado...');
     await new Promise(r => setTimeout(r, 0));
+
+    // Ordenar de menor a mayor fecha
+    allRows.sort((a, b) => {
+      const da = a.fecha ? new Date(a.fecha) : new Date(0);
+      const db = b.fecha ? new Date(b.fecha) : new Date(0);
+      return da - db;
+    });
+
     renderResults();
     goStep(3);
     setProgress(100, '✓ Listo');
