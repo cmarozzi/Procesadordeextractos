@@ -383,17 +383,37 @@ const toNum = v => {
 
 const getDate = v => {
   if (!v) return '';
-  if (v instanceof Date) return v.toISOString().split('T')[0];
-  return String(v).split('T')[0].split(' ')[0];
+  if (v instanceof Date) {
+    // xlsx.js crea Dates en UTC midnight → usar métodos UTC para no desplazar el día
+    const y = v.getUTCFullYear(), m = String(v.getUTCMonth()+1).padStart(2,'0'), d = String(v.getUTCDate()).padStart(2,'0');
+    return `${y}-${m}-${d}`;
+  }
+  const s = String(v).split(' ')[0]; // descarta hora y timezone
+  // ISO YYYY-MM-DD
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  // Formato MP México: M/D/YYYY → normalizar a YYYY-MM-DD
+  const p = s.split('/');
+  if (p.length === 3 && p[2].length === 4) {
+    return `${p[2]}-${p[0].padStart(2,'0')}-${p[1].padStart(2,'0')}`;
+  }
+  return s;
 };
 
 // Convierte cualquier valor a Date nativo (para celdas fecha en Excel)
+// Dates de xlsx vienen en UTC → se mantienen tal cual.
+// Strings se parsean y se crean al mediodía local (noon) para que ningún timezone
+// desplace el día al escribir el serial de Excel.
 const toDate = v => {
   if (!v) return null;
-  if (v instanceof Date) return v;
-  const iso = String(v).split('T')[0];
-  const p = iso.split('-');
-  if (p.length === 3) return new Date(Date.UTC(+p[0], +p[1]-1, +p[2]));
+  if (v instanceof Date) return v;  // ya es UTC midnight de xlsx, se escribe tal cual
+  const s = String(v).trim();
+  const ds = s.split(' ')[0]; // solo la parte de fecha (antes del espacio/hora)
+  // ISO YYYY-MM-DD
+  const p = ds.split('T')[0].split('-');
+  if (p.length === 3 && p[0].length === 4) return new Date(+p[0], +p[1]-1, +p[2], 12, 0, 0);
+  // Formato MP México: M/D/YYYY
+  const q = ds.split('/');
+  if (q.length === 3 && q[2].length === 4) return new Date(+q[2], +q[0]-1, +q[1], 12, 0, 0);
   return null;
 };
 
@@ -412,16 +432,15 @@ const NUM_COLS = new Set(['VALOR DE LA COMPRA','COMISIONES + IVA',
   'IMPUESTOS COBRADOS POR RETENCIONES DE IIBB','MONTO DEVUELTO AL PAGADOR',
   'TARIFA DE MERCADO PAGO','IMPUESTO A LAS GANANCIAS']);
 
-// Normaliza el raw para el export MP: convierte strings ISO a Date, columnas numéricas a número,
-// y omite la columna FECHA DE LIBERACIÓN DEL DINERO (ya la calculamos aparte, correctamente)
+// Normaliza el raw para el export MP: pasa los valores tal cual vienen del archivo MP
+// (Date objects de xlsx quedan como Date, strings de fecha quedan como texto),
+// convierte solo las columnas numéricas, y omite FECHA DE LIBERACIÓN DEL DINERO
 const fmtRaw = raw => {
   const out = {};
   for (const [k, v] of Object.entries(raw)) {
     if (k.toUpperCase().includes('FECHA DE LIBERACI') && k.toUpperCase().includes('DINERO')) continue;
     if (v instanceof Date) {
       out[k] = v;
-    } else if (typeof v === 'string' && /^\d{4}-\d{2}-\d{2}[T ]/.test(v)) {
-      out[k] = toDate(v) || v;
     } else if (NUM_COLS.has(k)) {
       out[k] = toNum(v);
     } else {
