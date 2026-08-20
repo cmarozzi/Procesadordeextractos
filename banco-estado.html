@@ -565,7 +565,7 @@ const CONFIG = {
   SHEETS_CSV_URL:  '',  // URL pública CSV de la pestaña BancoEstado en Google Sheets
   APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbwFwtGrCdvO3jSzL--WLRTZ-3SZctu6XMbFUJWrjM8Ar_qtCmIPPoqLORHf0xgKlKQm/exec',
   SHEET_URL:       'https://docs.google.com/spreadsheets/d/1xZgjk9FwWUFL-S0TVuc6aWqbXv_D2vlx0cX0n0Jw6ko/edit',
-  SHEET_TAB:       'Banco Estado',
+  SHEET_TAB:       'BancoEstado',
 };
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -777,9 +777,10 @@ function parseNum(val) {
 function fmtDate(val) {
   if (!val) return '';
   if (val instanceof Date) {
-    const d = String(val.getDate()).padStart(2,'0');
-    const m = String(val.getMonth()+1).padStart(2,'0');
-    return `${d}/${m}/${val.getFullYear()}`;
+    // Usar UTC para evitar desfase de timezone (SheetJS parsea en UTC)
+    const d = String(val.getUTCDate()).padStart(2,'0');
+    const m = String(val.getUTCMonth()+1).padStart(2,'0');
+    return `${d}/${m}/${val.getUTCFullYear()}`;
   }
   const s = String(val).trim();
   if (/^\d{2}\/\d{2}\/\d{4}$/.test(s)) return s;
@@ -998,7 +999,7 @@ function classifyRow(row) {
     row.odoo_desc='Comisiones bancarias'; row.odoo_cont='Banco del Estado de Chile';
     return;
   }
-  if (desc.startsWith('pac credito')) {
+  if (desc.startsWith('pac credito') || desc.includes('pago credito pac') || desc.includes('credito pac')) {
     row.tipo=T.PAC_CREDITO; row.estado=E.REVISAR;
     row.review_hint=`Ingresar split Capital / Intereses (total: ${fmtClp(Math.abs(row.odoo_imp))})`;
     row.review_data={total:Math.abs(row.odoo_imp)};
