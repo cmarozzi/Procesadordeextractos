@@ -1,0 +1,1156 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Procesador de Extracto · PayPal</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+
+<style>
+:root {
+  --orange:   #FF5023;
+  --navy:     #3938A0;
+  --green:    #00a650;
+  --red:      #e24b4a;
+  --amber:    #BA7517;
+
+  --orange-bg:   #fff4f1;
+  --orange-mid:  #fde0d7;
+  --green-bg:    #e6f7ed;
+  --red-bg:      #fdeaea;
+  --amber-bg:    #fff7e6;
+
+  --gray-900: #1a1a1a;
+  --gray-700: #4a4a4a;
+  --gray-500: #777;
+  --gray-300: #d9d9d9;
+  --gray-100: #f5f5f5;
+  --card-bg:  #ffffff;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: 'Barlow', -apple-system, "Segoe UI", sans-serif;
+  color: var(--gray-900);
+  background: #f6f7fb;
+  line-height: 1.5;
+}
+
+/* ========== Hero ========== */
+.hero {
+  background: var(--navy);
+  color: white;
+  padding: 36px 48px;
+  position: relative;
+}
+.hero::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 4px;
+  background: var(--orange);
+}
+.hero-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: rgba(255,255,255,.65);
+  text-decoration: none;
+  margin-bottom: 16px;
+  transition: color .15s;
+}
+.hero-back:hover { color: white; }
+.hero h1 {
+  margin: 0 0 4px 0;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -.3px;
+}
+.hero .subtitle {
+  font-size: 13px;
+  opacity: .7;
+  margin-bottom: 12px;
+  font-weight: 500;
+  letter-spacing: .5px;
+  text-transform: uppercase;
+}
+.hero p {
+  margin: 0;
+  font-size: 14px;
+  max-width: 820px;
+  opacity: .9;
+}
+
+/* ========== Container ========== */
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 32px 24px 64px;
+}
+
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--gray-300);
+  border-radius: 10px;
+  padding: 28px;
+  margin-bottom: 24px;
+  box-shadow: 0 1px 3px rgba(0,0,0,.04);
+}
+
+.card h2 {
+  margin: 0 0 20px 0;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--orange);
+  font-weight: 700;
+}
+
+/* ========== Uploaders ========== */
+.uploaders {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.uploader {
+  background: var(--orange-bg);
+  border: 1.5px dashed #f0b09a;
+  border-radius: 8px;
+  padding: 16px;
+  cursor: pointer;
+  transition: all .15s ease;
+  position: relative;
+}
+.uploader:hover {
+  background: var(--orange-mid);
+  border-color: var(--orange);
+}
+.uploader.has-file {
+  background: var(--green-bg);
+  border-color: var(--green);
+  border-style: solid;
+}
+.uploader.dragover {
+  background: var(--orange-mid);
+  border-color: var(--orange);
+  transform: scale(1.01);
+}
+.uploader input[type="file"] { display: none; }
+.uploader .label {
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 4px;
+  color: var(--gray-900);
+}
+.uploader .hint {
+  font-size: 12px;
+  color: var(--gray-500);
+  margin-bottom: 10px;
+  line-height: 1.4;
+}
+.uploader .hint code {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  background: rgba(0,0,0,.06);
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+.uploader .action {
+  font-size: 12px;
+  color: var(--gray-700);
+  font-style: italic;
+}
+.uploader .filename {
+  font-size: 12px;
+  color: var(--green);
+  font-weight: 600;
+  word-break: break-all;
+}
+
+/* ========== Buttons ========== */
+.actions {
+  margin-top: 24px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: 'Barlow', sans-serif;
+  cursor: pointer;
+  transition: all .15s ease;
+}
+.btn-primary {
+  background: var(--orange);
+  color: white;
+}
+.btn-primary:hover:not(:disabled) { background: #e6401a; }
+.btn-primary:disabled {
+  background: #f0b09a;
+  cursor: not-allowed;
+}
+.btn-secondary {
+  background: var(--gray-100);
+  color: var(--gray-700);
+  border: 1px solid var(--gray-300);
+}
+.btn-secondary:hover { background: var(--gray-300); }
+
+.notice {
+  margin-top: 12px;
+  font-size: 12px;
+  color: var(--gray-500);
+}
+
+/* ========== Status ========== */
+.status-banner {
+  padding: 14px 18px;
+  border-radius: 8px;
+  font-weight: 600;
+  margin-bottom: 20px;
+  font-size: 14px;
+}
+.status-ok {
+  background: var(--green-bg);
+  color: #007a3a;
+  border-left: 4px solid var(--green);
+}
+.status-warn {
+  background: var(--red-bg);
+  color: #b03030;
+  border-left: 4px solid var(--red);
+}
+
+/* ========== Stats ========== */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.stat {
+  background: var(--gray-100);
+  padding: 12px 14px;
+  border-radius: 6px;
+}
+.stat .label {
+  font-size: 11px;
+  text-transform: uppercase;
+  color: var(--gray-500);
+  letter-spacing: .5px;
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+.stat .value {
+  font-size: 18px;
+  font-weight: 700;
+}
+.stat .sub {
+  font-size: 11px;
+  color: var(--gray-500);
+}
+
+.download-row { margin-bottom: 24px; }
+
+/* ========== Tabla preview ========== */
+.table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--gray-300);
+  border-radius: 6px;
+  margin-bottom: 20px;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+thead th {
+  background: var(--navy);
+  color: white;
+  padding: 10px 12px;
+  text-align: left;
+  font-weight: 600;
+  font-family: 'Barlow', sans-serif;
+  position: sticky;
+  top: 0;
+}
+tbody td {
+  padding: 8px 12px;
+  border-bottom: 1px solid #eee;
+}
+tbody tr.revisar td {
+  background: var(--red-bg);
+  color: #8c2020;
+}
+tbody tr.transferencia td {
+  background: #eef1fc;
+  color: #2a3080;
+}
+tbody tr.comision td {
+  background: var(--amber-bg);
+  color: #7a4a00;
+  font-style: italic;
+}
+td.importe {
+  text-align: right;
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+/* ========== Issues ========== */
+.issue-section {
+  border: 1px solid #f5b0aa;
+  background: var(--red-bg);
+  border-radius: 8px;
+  padding: 14px 18px;
+  margin-bottom: 14px;
+}
+.issue-section h3 {
+  margin: 0 0 6px 0;
+  font-size: 14px;
+  color: #b03030;
+  font-weight: 600;
+}
+.issue-section p {
+  margin: 0 0 10px 0;
+  font-size: 13px;
+  color: var(--gray-700);
+}
+.issue-section ul {
+  margin: 0;
+  padding-left: 20px;
+  font-size: 13px;
+}
+.issue-section li { margin-bottom: 4px; }
+.issue-section code {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  background: rgba(0,0,0,.07);
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+
+/* ========== Reglas ========== */
+details.rule {
+  border-top: 1px solid var(--gray-300);
+  padding: 12px 0;
+}
+details.rule:first-of-type { border-top: none; }
+details.rule summary {
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--gray-900);
+  list-style: none;
+  padding-left: 20px;
+  position: relative;
+}
+details.rule summary::before {
+  content: "+";
+  position: absolute;
+  left: 0;
+  color: var(--orange);
+  font-weight: 700;
+}
+details.rule[open] summary::before { content: "−"; }
+details.rule .rule-body {
+  padding: 10px 0 6px 20px;
+  font-size: 13px;
+  color: var(--gray-700);
+}
+details.rule .rule-body code {
+  font-family: 'DM Mono', monospace;
+  background: var(--gray-100);
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 12px;
+}
+details.rule .rule-body ul { padding-left: 18px; }
+details.rule .rule-body li { margin-bottom: 4px; }
+
+.error-box {
+  background: var(--red-bg);
+  color: #b03030;
+  padding: 12px 16px;
+  border-radius: 6px;
+  border-left: 4px solid var(--red);
+  margin-top: 16px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.hidden { display: none !important; }
+
+/* ========== Responsive ========== */
+@media (max-width: 768px) {
+  .hero { padding: 24px 20px; }
+  .container { padding: 20px 12px; }
+  .uploaders { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <a href="index.html" class="hero-back">← Volver al inicio</a>
+  <div class="subtitle">Fudo · Procesador de Extractos</div>
+  <h1>Extracto PayPal</h1>
+  <p>
+    Cruza el reporte de <strong>PayPal</strong> con las <strong>cuentas de Dash</strong> y los
+    <strong>contactos de Odoo</strong>, clasifica cada movimiento (cobro, transferencia PP→BBVA
+    o salida no habitual) y arma el extracto listo para importar.
+  </p>
+</header>
+
+<main class="container">
+
+  <!-- ================= ARCHIVOS ================= -->
+  <section class="card">
+    <h2>Archivos</h2>
+    <div class="uploaders">
+      <!-- 1) PayPal -->
+      <label class="uploader" id="up-paypal">
+        <input type="file" accept=".csv" data-kind="paypal" />
+        <div class="label">Movimientos PayPal</div>
+        <div class="hint">Reporte de actividad (<code>.csv</code>).<br>Descarga directa del panel de PayPal.</div>
+        <div class="action">Arrastrá o hacé clic</div>
+      </label>
+
+      <!-- 2) Dash ZIP -->
+      <label class="uploader" id="up-dash">
+        <input type="file" accept=".zip" data-kind="dash" />
+        <div class="label">Cuentas de Dash</div>
+        <div class="hint">Reporte <em>accounts</em> (<code>.zip</code>).<br>Se usa <code>accounts_*.csv</code> de adentro.</div>
+        <div class="action">Arrastrá o hacé clic</div>
+      </label>
+
+      <!-- 3) Odoo partners -->
+      <label class="uploader" id="up-odoo">
+        <input type="file" accept=".xlsx,.xls" data-kind="odoo" />
+        <div class="label">Contactos de Odoo</div>
+        <div class="hint">Export de <code>res.partner</code> (<code>.xlsx</code>).<br>Debe tener columna "Referencia".</div>
+        <div class="action">Arrastrá o hacé clic</div>
+      </label>
+    </div>
+
+    <div class="actions">
+      <button id="btn-procesar" class="btn btn-primary" disabled>Procesar</button>
+      <button id="btn-limpiar" class="btn btn-secondary">Limpiar</button>
+    </div>
+    <div class="notice">Los archivos se leen en tu navegador. No se sube nada a ningún servidor.</div>
+
+    <div id="error-box" class="error-box hidden"></div>
+  </section>
+
+  <!-- ================= RESULTADO ================= -->
+  <section id="resultado" class="card hidden">
+    <h2>Resultado</h2>
+
+    <div id="status-banner" class="status-banner"></div>
+
+    <div class="stats" id="stats-grid"></div>
+
+    <div class="download-row">
+      <button id="btn-descargar" class="btn btn-primary">↓ Descargar Extracto_PayPal.csv</button>
+    </div>
+
+    <div id="issues"></div>
+
+    <h3 style="margin-top:28px;margin-bottom:10px;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--gray-500);font-weight:700;">Preview del extracto</h3>
+    <div class="table-wrap">
+      <table id="preview-table">
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Descripción</th>
+            <th>Contacto</th>
+            <th>Referencia</th>
+            <th style="text-align:right">Importe</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div style="font-size:12px;color:var(--gray-500);margin-top:6px;">
+      Rojo = fila con <code style="font-family:'DM Mono',monospace;font-size:11px;">[REVISAR]</code>. Azul = transferencia PP→BBVA. Beige = fila de comisiones.
+    </div>
+  </section>
+
+  <!-- ================= REGLAS ================= -->
+  <section class="card">
+    <h2>Reglas del extracto</h2>
+    <p style="font-size:13px;color:var(--gray-500);margin:-8px 0 16px 0;">
+      El criterio que aplica esta herramienta, para consultar sin salir de acá.
+    </p>
+
+    <details class="rule">
+      <summary>Los tres archivos</summary>
+      <div class="rule-body">
+        <ul>
+          <li><strong>Movimientos PayPal</strong>: el CSV que bajás desde PayPal. Trae la actividad del período, con una fila por movimiento (cobros, transferencias, retiros, etc.).</li>
+          <li><strong>Cuentas de Dash</strong>: el ZIP del reporte <em>accounts</em>. Adentro vienen dos CSV: usamos <code>accounts_*.csv</code> (ignoramos <code>billing_data_*.csv</code>). El CSV trae una cabecera "sucia" al inicio — saltamos las primeras líneas hasta encontrar la real (<code>ID,Nombre,...</code>).</li>
+          <li><strong>Contactos de Odoo</strong>: el export XLSX de <code>res.partner</code>. Buscamos las columnas <code>Referencia</code> (ID de cuenta) y <code>Nombre</code> (contacto en Odoo).</li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="rule">
+      <summary>Filtro global</summary>
+      <div class="rule-body">
+        Solo se procesan filas con <code>Estado = "Completado"</code> y <code>Divisa = "USD"</code>.<br>
+        Los movimientos en ARS u otras monedas (retiros a pesos, conversiones ARS, etc.) se ignoran silenciosamente.
+      </div>
+    </details>
+
+    <details class="rule">
+      <summary>Criterios de Descripción y Contacto</summary>
+      <div class="rule-body">
+        <strong>Descripción:</strong> <code>Nombre del artículo</code> sin el prefijo "Suscripción - " o "Pago - ".
+        Si el <code>ID</code> de la cuenta <strong>no está en Dash</strong>, se antepone <code>[REVISAR]</code> y se agrega el nombre del pagador PayPal.<br><br>
+        <strong>Contacto:</strong>
+        <ol>
+          <li>Si el ID está en Odoo → se usa el "Nombre" tal cual viene (ej. <code>347710/Acuatic</code>).</li>
+          <li>Si no está en Odoo pero sí en Dash → <code>[REVISAR] {ID}/{Nombre desde Dash}</code>.</li>
+          <li>Si no está en ninguno → <code>[REVISAR] {nombre del pagador PayPal}</code>.</li>
+        </ol>
+      </div>
+    </details>
+
+    <details class="rule">
+      <summary>Transferencia interna</summary>
+      <div class="rule-body">
+        Fila con <code>Bruto &lt; 0</code>, <code>Divisa = USD</code> y <code>Tipo = "Conversión de divisas general"</code>.<br>
+        <strong>Descripción:</strong> texto fijo <code>Transf. PP to BBVA</code>.<br>
+        <strong>Contacto:</strong> vacío (se concilia manualmente dentro de Odoo).<br>
+        Nunca lleva marca <code>[REVISAR]</code>.
+      </div>
+    </details>
+
+    <details class="rule">
+      <summary>Salidas de dinero poco frecuentes</summary>
+      <div class="rule-body">
+        Fila con <code>Bruto &lt; 0</code>, <code>Divisa = USD</code> y <code>Tipo</code> distinto de "Conversión de divisas general".<br>
+        Ejemplos: reembolsos, pagos a proveedores, ajustes. Son poco frecuentes.<br>
+        <strong>Descripción:</strong> <code>[REVISAR] {artículo o tipo} - {nombre del pagador}</code>.<br>
+        <strong>Contacto:</strong> misma lógica que un cobro (puede llevar <code>[REVISAR]</code> si no matchea Odoo).<br>
+        Se listan al pie para revisión manual antes de importar.
+      </div>
+    </details>
+
+    <details class="rule">
+      <summary>Marcas [REVISAR]</summary>
+      <div class="rule-body">
+        Las dos marcas (en Descripción y en Contacto) son <strong>independientes</strong>:
+        <ul>
+          <li><code>[REVISAR]</code> en Descripción = la cuenta cobró pero no figura en el listado de Dash. Revisá por qué no está activa.</li>
+          <li><code>[REVISAR]</code> en Contacto = el contacto no existe todavía en Odoo. Creálo antes de importar.</li>
+        </ul>
+        Una misma fila puede tener marca solo en una, en las dos, o en ninguna.
+      </div>
+    </details>
+
+    <details class="rule">
+      <summary>Fila final de comisiones</summary>
+      <div class="rule-body">
+        Al final del extracto se agrega una fila consolidada con la suma de todas las comisiones PayPal del período:<br>
+        <code>Fecha</code> = última fecha / <code>Descripción</code> = <code>Comisiones MM-YYYY</code> / <code>Contacto</code> = vacío /
+        <code>Referencia</code> = <code>Comisiones MM-YYYY</code> / <code>Importe</code> = suma (negativo).
+      </div>
+    </details>
+
+    <details class="rule">
+      <summary>Formato del CSV de salida</summary>
+      <div class="rule-body">
+        UTF-8 con BOM, separador <code>;</code>, saltos de línea CRLF.
+        Cabeceras: <code>Fecha ; Descripción ; Contacto ; Referencia ;   Importe  </code> (los espacios alrededor de "Importe" son los que exige la plantilla de Odoo).<br>
+        Las fechas quedan en formato <code>D/M/YYYY</code> (sin ceros a la izquierda).
+        Los importes van con coma decimal, sin ceros sobrantes.
+      </div>
+    </details>
+  </section>
+</main>
+
+<script>
+// ============================================================================
+//  Constantes
+// ============================================================================
+const PREFIX_RE = /^(?:Suscripción|Pago)\s*-\s*/i;
+const TIPO_TRANSFERENCIA = "Conversión de divisas general";
+const DESC_TRANSFERENCIA = "Transf. PP to BBVA";
+const ODOO_HEADERS = ["Fecha", "Descripción", "Contacto", "Referencia", "  Importe  "];
+const ODOO_DELIMITER = ";";
+const OUTPUT_FILENAME = "Extracto_PayPal.csv";
+
+// Estado global
+const state = {
+    files: { paypal: null, dash: null, odoo: null },
+    lastResult: null,
+};
+
+// ============================================================================
+//  Helpers de números/fechas (formato es-ES)
+// ============================================================================
+function parseEsNumber(value) {
+    if (value === null || value === undefined || value === "") return 0;
+    const s = String(value).trim().replace(/\./g, "").replace(",", ".");
+    const n = parseFloat(s);
+    return isNaN(n) ? 0 : n;
+}
+
+function formatEsNumber(value) {
+    if (value === Math.trunc(value)) return String(Math.trunc(value));
+    // 2 decimales como máximo, sin ceros sobrantes al final
+    let s = value.toFixed(2);
+    if (s.includes(".")) s = s.replace(/0+$/, "").replace(/\.$/, "");
+    return s.replace(".", ",");
+}
+
+function formatEsDate(ddmmyyyy) {
+    const parts = String(ddmmyyyy).split("/");
+    if (parts.length !== 3) return ddmmyyyy;
+    const [d, m, y] = parts;
+    return `${parseInt(d, 10)}/${parseInt(m, 10)}/${y}`;
+}
+
+function sortkeyDDMMYYYY(s) {
+    const parts = String(s).split("/");
+    if (parts.length !== 3) return [0, 0, 0];
+    return [parseInt(parts[2], 10) || 0, parseInt(parts[1], 10) || 0, parseInt(parts[0], 10) || 0];
+}
+
+function compareDates(a, b) {
+    const [ya, ma, da] = sortkeyDDMMYYYY(a);
+    const [yb, mb, db] = sortkeyDDMMYYYY(b);
+    if (ya !== yb) return ya - yb;
+    if (ma !== mb) return ma - mb;
+    return da - db;
+}
+
+// ============================================================================
+//  Parsers
+// ============================================================================
+
+/** Lee el reporte de PayPal (.csv con BOM, decimales con coma, DD/MM/YYYY). */
+async function parsePayPalCSV(file) {
+    const text = await file.text();
+    const parsed = Papa.parse(text, {
+        header: true,
+        skipEmptyLines: true,
+        transformHeader: (h) => h.trim(),
+    });
+    if (parsed.errors && parsed.errors.length) {
+        console.warn("PayPal CSV parse warnings:", parsed.errors.slice(0, 3));
+    }
+    // Verificar columnas mínimas
+    const required = ["Fecha", "Tipo", "Estado", "Divisa", "Bruto", "Id. de transacción"];
+    const headers = parsed.meta.fields || [];
+    const missing = required.filter((c) => !headers.includes(c));
+    if (missing.length) {
+        throw new Error("El reporte de PayPal no tiene las columnas esperadas. Falta: " + missing.join(", "));
+    }
+    return parsed.data;
+}
+
+/** Lee el export de contactos de Odoo (.xlsx) y devuelve Map<ID_str, Nombre_str>. */
+async function parseOdooXLSX(file) {
+    const buf = await file.arrayBuffer();
+    const wb = XLSX.read(buf, { type: "array" });
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(ws, { defval: "" });
+    if (!rows.length) throw new Error("El XLSX de Odoo está vacío.");
+    const firstRow = rows[0];
+    if (!("Referencia" in firstRow) || !("Nombre" in firstRow)) {
+        throw new Error("El XLSX de Odoo no tiene las columnas esperadas ('Referencia' y 'Nombre').");
+    }
+    const partners = new Map();
+    for (const r of rows) {
+        const ref = r["Referencia"];
+        const name = r["Nombre"];
+        if (ref !== "" && ref !== null && name !== "" && name !== null) {
+            partners.set(String(ref).trim(), String(name).trim());
+        }
+    }
+    return partners;
+}
+
+/** Lee el ZIP de Dash, busca accounts_*.csv adentro, saltea la cabecera "sucia"
+    y devuelve Map<ID_str, Nombre_str>. */
+async function parseDashZIP(file) {
+    const buf = await file.arrayBuffer();
+    const zip = await JSZip.loadAsync(buf);
+
+    let accountsEntry = null;
+    zip.forEach((relPath, entry) => {
+        if (accountsEntry) return;
+        if (entry.dir) return;
+        const base = relPath.split("/").pop();
+        if (/^accounts_.*\.csv$/i.test(base)) accountsEntry = entry;
+    });
+    if (!accountsEntry) throw new Error("No se encontró 'accounts_*.csv' dentro del ZIP de Dash.");
+
+    const text = await accountsEntry.async("string");
+
+    // Encontrar la línea de cabecera real
+    const lines = text.split(/\r?\n/);
+    let headerIdx = -1;
+    for (let i = 0; i < lines.length; i++) {
+        const clean = lines[i].replace(/^﻿/, "");
+        if (clean.startsWith("ID,Nombre,")) { headerIdx = i; break; }
+    }
+    if (headerIdx === -1) {
+        throw new Error("El CSV de accounts no tiene la cabecera esperada 'ID,Nombre,...'.");
+    }
+
+    const cleanCsv = lines.slice(headerIdx).join("\n");
+    const parsed = Papa.parse(cleanCsv, {
+        header: true,
+        skipEmptyLines: true,
+        transformHeader: (h) => h.replace(/^﻿/, "").trim(),
+    });
+    const accounts = new Map();
+    for (const r of parsed.data) {
+        const id = r["ID"];
+        const nombre = r["Nombre"];
+        if (id && nombre) accounts.set(String(id).trim(), String(nombre).trim());
+    }
+    if (!accounts.size) throw new Error("El CSV de accounts no tiene filas válidas (ID/Nombre).");
+    return accounts;
+}
+
+// ============================================================================
+//  Lógica del extracto (replica el script Python)
+// ============================================================================
+
+function extractAccountId(np) {
+    if (!np) return "";
+    return String(np).split("::")[0];
+}
+
+function buildContacto(accId, paypalNombre, partners, accounts) {
+    if (accId && partners.has(accId)) return partners.get(accId);
+    if (accId && accounts.has(accId)) return `[REVISAR] ${accId}/${accounts.get(accId)}`;
+    return ("[REVISAR] " + (paypalNombre || "")).replace(/\s+$/, "");
+}
+
+function convert(paypalRows, accounts, partners) {
+    const rows = [];
+    let totalComision = 0;
+    let lastDate = "";
+    const sinMatchAccounts = [];
+    const sinMatchPartners = [];
+    const transferencias = [];
+    const salidasNoHabituales = [];
+    let skipped = 0;
+
+    for (const p of paypalRows) {
+        if (p["Estado"] !== "Completado") { skipped++; continue; }
+        if (p["Divisa"] !== "USD") { skipped++; continue; }
+
+        const bruto = parseEsNumber(p["Bruto"]);
+        if (bruto === 0) { skipped++; continue; }
+
+        const tipo = (p["Tipo"] || "").trim();
+        const paypalNombre = (p["Nombre"] || "").toString();
+        const articulo = (p["Nombre del artículo"] || "").toString();
+        const txid = (p["Id. de transacción"] || "").toString();
+        const fecha = formatEsDate(p["Fecha"]);
+        lastDate = fecha;
+
+        // ----- Rama B: transferencia PP → BBVA -----
+        if (bruto < 0 && tipo === TIPO_TRANSFERENCIA) {
+            rows.push({
+                data: [fecha, DESC_TRANSFERENCIA, "", txid, formatEsNumber(bruto)],
+                kind: "transferencia",
+            });
+            transferencias.push([fecha, txid, bruto]);
+            totalComision += parseEsNumber(p["Comisión"] || "0");
+            continue;
+        }
+
+        // ----- Rama C: salida USD no habitual -----
+        if (bruto < 0) {
+            const descBase = articulo ? articulo.replace(PREFIX_RE, "") : tipo;
+            let desc = `[REVISAR] ${descBase} - ${paypalNombre}`.replace(/[\s-]+$/, "");
+            const accId = extractAccountId(p["Número personalizado"] || "");
+            const contacto = buildContacto(accId, paypalNombre, partners, accounts);
+            rows.push({
+                data: [fecha, desc, contacto, txid, formatEsNumber(bruto)],
+                kind: "revisar",
+            });
+            salidasNoHabituales.push([tipo, paypalNombre, bruto, txid]);
+            totalComision += parseEsNumber(p["Comisión"] || "0");
+            continue;
+        }
+
+        // ----- Rama A: cobro normal -----
+        const accId = extractAccountId(p["Número personalizado"] || "");
+        const descBase = articulo.replace(PREFIX_RE, "");
+        const inAccounts = !!accId && accounts.has(accId);
+        const inPartners = !!accId && partners.has(accId);
+
+        let desc;
+        if (!inAccounts) {
+            desc = `[REVISAR] ${descBase} - ${paypalNombre}`.replace(/[\s-]+$/, "");
+            sinMatchAccounts.push([accId, paypalNombre, descBase]);
+        } else {
+            desc = descBase;
+        }
+
+        const contacto = buildContacto(accId, paypalNombre, partners, accounts);
+        if (!inPartners) {
+            sinMatchPartners.push([accId, paypalNombre, descBase]);
+        }
+
+        const kind = (!inAccounts || !inPartners) ? "revisar" : "normal";
+        rows.push({
+            data: [fecha, desc, contacto, txid, formatEsNumber(bruto)],
+            kind,
+        });
+        totalComision += parseEsNumber(p["Comisión"] || "0");
+    }
+
+    // Fila consolidada de comisiones
+    if (totalComision !== 0 && lastDate) {
+        const [, m, y] = lastDate.split("/");
+        const etiqueta = `Comisiones ${String(parseInt(m, 10)).padStart(2, "0")}-${y}`;
+        rows.push({
+            data: [lastDate, etiqueta, "", etiqueta, formatEsNumber(totalComision)],
+            kind: "comision",
+        });
+    }
+
+    // Período
+    const fechasIncluidas = paypalRows
+        .filter((p) => p["Estado"] === "Completado" && p["Divisa"] === "USD" && parseEsNumber(p["Bruto"]) !== 0)
+        .map((p) => p["Fecha"])
+        .sort(compareDates);
+
+    const totalBruto = rows
+        .filter((r) => !r.data[1].startsWith("Comisiones"))
+        .reduce((s, r) => s + parseEsNumber(r.data[4]), 0);
+    const saldoNeto = rows.reduce((s, r) => s + parseEsNumber(r.data[4]), 0);
+
+    return {
+        inputRows: paypalRows.length,
+        outputRows: rows.length,
+        skipped,
+        rows,
+        sinMatchAccounts,
+        sinMatchPartners,
+        transferencias,
+        salidasNoHabituales,
+        totalComision,
+        totalBruto,
+        saldoNeto,
+        fechaDesde: fechasIncluidas[0] || "",
+        fechaHasta: fechasIncluidas[fechasIncluidas.length - 1] || "",
+    };
+}
+
+function dedupById(items) {
+    const vistos = new Set();
+    const out = [];
+    for (const item of items) {
+        const id = item[0];
+        if (!vistos.has(id)) { vistos.add(id); out.push(item); }
+    }
+    return out;
+}
+
+// ============================================================================
+//  Generación de CSV
+// ============================================================================
+function buildCSV(result) {
+    const esc = (v) => {
+        const s = String(v);
+        if (/[;"\r\n]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+        return s;
+    };
+    const lines = [];
+    lines.push(ODOO_HEADERS.map(esc).join(ODOO_DELIMITER));
+    for (const r of result.rows) {
+        lines.push(r.data.map(esc).join(ODOO_DELIMITER));
+    }
+    return "﻿" + lines.join("\r\n") + "\r\n";
+}
+
+function downloadCSV(csvText, filename) {
+    const blob = new Blob([csvText], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+// ============================================================================
+//  Render del resultado
+// ============================================================================
+function renderResult(result) {
+    const unicosAcc = dedupById(result.sinMatchAccounts);
+    const unicosPar = dedupById(result.sinMatchPartners);
+    const hayIssues = unicosAcc.length > 0 || unicosPar.length > 0 || result.salidasNoHabituales.length > 0;
+
+    // Banner
+    const banner = document.getElementById("status-banner");
+    if (!hayIssues) {
+        banner.className = "status-banner status-ok";
+        banner.textContent = "✓ PERFECTO. No se encontraron errores. El archivo está listo para importar a Odoo.";
+    } else {
+        banner.className = "status-banner status-warn";
+        banner.textContent = "⚠ Revisá los puntos de abajo antes de importar a Odoo. Buscá en el CSV por el prefijo [REVISAR].";
+    }
+
+    // Stats grid
+    const stats = document.getElementById("stats-grid");
+    const fmtMoney = (n) => "USD " + n.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    stats.innerHTML = `
+        <div class="stat">
+            <div class="label">Período</div>
+            <div class="value" style="font-size:14px;">${result.fechaDesde || "—"} → ${result.fechaHasta || "—"}</div>
+        </div>
+        <div class="stat">
+            <div class="label">Filas entrada</div>
+            <div class="value">${result.inputRows}</div>
+            <div class="sub">${result.skipped} ignoradas</div>
+        </div>
+        <div class="stat">
+            <div class="label">Filas salida</div>
+            <div class="value">${result.outputRows}</div>
+            <div class="sub">incluye 1 de comisiones</div>
+        </div>
+        <div class="stat">
+            <div class="label">Transferencias PP→BBVA</div>
+            <div class="value">${result.transferencias.length}</div>
+        </div>
+        <div class="stat">
+            <div class="label">Sin match en Dash</div>
+            <div class="value">${unicosAcc.length}</div>
+            <div class="sub">${result.sinMatchAccounts.length} cobros</div>
+        </div>
+        <div class="stat">
+            <div class="label">Sin match en Odoo</div>
+            <div class="value">${unicosPar.length}</div>
+            <div class="sub">${result.sinMatchPartners.length} cobros</div>
+        </div>
+        <div class="stat">
+            <div class="label">Total Bruto</div>
+            <div class="value" style="font-size:15px;">${fmtMoney(result.totalBruto)}</div>
+        </div>
+        <div class="stat">
+            <div class="label">Total Comisión</div>
+            <div class="value" style="font-size:15px;">${fmtMoney(result.totalComision)}</div>
+        </div>
+        <div class="stat">
+            <div class="label">Saldo neto</div>
+            <div class="value" style="font-size:15px;">${fmtMoney(result.saldoNeto)}</div>
+        </div>
+    `;
+
+    // Issues
+    const issuesDiv = document.getElementById("issues");
+    issuesDiv.innerHTML = "";
+    if (unicosAcc.length) {
+        issuesDiv.appendChild(renderIssueBlock(
+            `${unicosAcc.length} cuenta(s) NO están en Dash (accounts).`,
+            "Estas filas tienen [REVISAR] en Descripción. Revisá por qué estas cuentas pagaron pero no figuran en el listado de activas.",
+            unicosAcc.map(([id, pagador, articulo]) =>
+                `ID <code>${id}</code> &middot; pagador PayPal: <em>${escapeHtml(pagador)}</em> &middot; artículo: <em>${escapeHtml(articulo)}</em>`
+            ),
+        ));
+    }
+    if (unicosPar.length) {
+        issuesDiv.appendChild(renderIssueBlock(
+            `${unicosPar.length} contacto(s) NO están creados en Odoo (res.partner).`,
+            "Estas filas tienen [REVISAR] en Contacto. Creá estos contactos en Odoo antes de importar.",
+            unicosPar.map(([id, pagador, articulo]) =>
+                `ID <code>${id}</code> &middot; pagador PayPal: <em>${escapeHtml(pagador)}</em> &middot; artículo: <em>${escapeHtml(articulo)}</em>`
+            ),
+        ));
+    }
+    if (result.salidasNoHabituales.length) {
+        issuesDiv.appendChild(renderIssueBlock(
+            `${result.salidasNoHabituales.length} salida(s) USD que NO son transferencias PP→BBVA.`,
+            "Posibles reembolsos, pagos a proveedores u otros movimientos raros. Estas filas tienen [REVISAR] en Descripción.",
+            result.salidasNoHabituales.map(([tipo, pagador, bruto, txid]) =>
+                `Tipo: <em>${escapeHtml(tipo)}</em> &middot; pagador: <em>${escapeHtml(pagador)}</em> &middot; importe: ${bruto.toFixed(2)} &middot; txid: <code>${escapeHtml(txid)}</code>`
+            ),
+        ));
+    }
+
+    // Tabla preview
+    const tbody = document.querySelector("#preview-table tbody");
+    tbody.innerHTML = "";
+    for (const r of result.rows) {
+        const tr = document.createElement("tr");
+        if (r.kind) tr.className = r.kind;
+        for (let i = 0; i < r.data.length; i++) {
+            const td = document.createElement("td");
+            td.textContent = r.data[i];
+            if (i === 4) td.className = "importe";
+            tr.appendChild(td);
+        }
+        tbody.appendChild(tr);
+    }
+
+    document.getElementById("resultado").classList.remove("hidden");
+    document.getElementById("resultado").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function renderIssueBlock(title, description, items) {
+    const section = document.createElement("div");
+    section.className = "issue-section";
+    section.innerHTML = `
+        <h3>⚠ ${escapeHtml(title)}</h3>
+        <p>${escapeHtml(description)}</p>
+        <ul>${items.map((i) => `<li>${i}</li>`).join("")}</ul>
+    `;
+    return section;
+}
+
+function escapeHtml(s) {
+    return String(s)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+}
+
+// ============================================================================
+//  UI wiring: uploaders, drag&drop, botones
+// ============================================================================
+function setupUploader(id, kind) {
+    const el = document.getElementById(id);
+    const input = el.querySelector("input[type=file]");
+
+    const setFile = (file) => {
+        state.files[kind] = file;
+        el.classList.add("has-file");
+        const existing = el.querySelector(".filename");
+        if (existing) existing.remove();
+        const fn = document.createElement("div");
+        fn.className = "filename";
+        fn.textContent = "✓ " + file.name;
+        el.appendChild(fn);
+        updateProcesarButton();
+    };
+
+    input.addEventListener("change", (e) => {
+        if (e.target.files && e.target.files[0]) setFile(e.target.files[0]);
+    });
+
+    // Drag & drop
+    ["dragenter", "dragover"].forEach((evt) => {
+        el.addEventListener(evt, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            el.classList.add("dragover");
+        });
+    });
+    ["dragleave", "drop"].forEach((evt) => {
+        el.addEventListener(evt, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            el.classList.remove("dragover");
+        });
+    });
+    el.addEventListener("drop", (e) => {
+        const files = e.dataTransfer.files;
+        if (files && files[0]) setFile(files[0]);
+    });
+}
+
+function updateProcesarButton() {
+    const btn = document.getElementById("btn-procesar");
+    btn.disabled = !(state.files.paypal && state.files.dash && state.files.odoo);
+}
+
+function showError(msg) {
+    const box = document.getElementById("error-box");
+    box.textContent = "✗ " + msg;
+    box.classList.remove("hidden");
+}
+
+function clearError() {
+    document.getElementById("error-box").classList.add("hidden");
+}
+
+async function handleProcesar() {
+    clearError();
+    document.getElementById("resultado").classList.add("hidden");
+    const btn = document.getElementById("btn-procesar");
+    btn.disabled = true;
+    btn.textContent = "Procesando…";
+
+    try {
+        const [paypalRows, accounts, partners] = await Promise.all([
+            parsePayPalCSV(state.files.paypal),
+            parseDashZIP(state.files.dash),
+            parseOdooXLSX(state.files.odoo),
+        ]);
+        const result = convert(paypalRows, accounts, partners);
+        state.lastResult = result;
+        renderResult(result);
+    } catch (err) {
+        console.error(err);
+        showError(err.message || String(err));
+    } finally {
+        btn.textContent = "Procesar";
+        updateProcesarButton();
+    }
+}
+
+function handleLimpiar() {
+    clearError();
+    state.files = { paypal: null, dash: null, odoo: null };
+    state.lastResult = null;
+    document.querySelectorAll(".uploader").forEach((el) => {
+        el.classList.remove("has-file");
+        const fn = el.querySelector(".filename");
+        if (fn) fn.remove();
+        el.querySelector("input[type=file]").value = "";
+    });
+    document.getElementById("resultado").classList.add("hidden");
+    updateProcesarButton();
+}
+
+function handleDescargar() {
+    if (!state.lastResult) return;
+    const csv = buildCSV(state.lastResult);
+    downloadCSV(csv, OUTPUT_FILENAME);
+}
+
+// ============================================================================
+//  Init
+// ============================================================================
+document.addEventListener("DOMContentLoaded", () => {
+    setupUploader("up-paypal", "paypal");
+    setupUploader("up-dash", "dash");
+    setupUploader("up-odoo", "odoo");
+    document.getElementById("btn-procesar").addEventListener("click", handleProcesar);
+    document.getElementById("btn-limpiar").addEventListener("click", handleLimpiar);
+    document.getElementById("btn-descargar").addEventListener("click", handleDescargar);
+});
+</script>
+</body>
+</html>
