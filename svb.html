@@ -602,8 +602,9 @@ async function parseOdooFiles(fileList) {
       const ws   = wb.Sheets[sheetName];
       const data = XLSX.utils.sheet_to_json(ws, { header:1, defval:'' });
       let headerRowIdx = -1, colIdx = -1;
+      const VENDOR_COL_NAMES = ['Nombre de la empresa a mostrar en la factura', 'Nombre del socio a mostrar en la factura'];
       for (let i = 0; i < Math.min(data.length, 5); i++) {
-        const c = data[i].findIndex(cell => (cell||'').toString().trim() === 'Nombre del socio a mostrar en la factura');
+        const c = data[i].findIndex(cell => VENDOR_COL_NAMES.includes((cell||'').toString().trim()));
         if (c !== -1) { headerRowIdx = i; colIdx = c; break; }
       }
       if (headerRowIdx === -1) continue;
