@@ -1062,6 +1062,9 @@ function expandProveedores(rows, nominas) {
         notas:`Nomina interna ${nNum} → ${banco}`});
       continue;
     }
+    // Determinar prefijo según nombre de nómina (ej: "viaticos20261008" → "Viáticos")
+    const nomNombre = (nominas[nNum]?.nombre || '').toLowerCase().replace(/[áa]/g,'a');
+    const prefix = nomNombre.includes('viatico') ? 'Viáticos' : 'Pago';
     const grupos = {};
     for (const p of pagos) {
       if (p.estado.toLowerCase()==='rechazado') continue;
@@ -1073,7 +1076,7 @@ function expandProveedores(rows, nominas) {
       result.push({...row,
         id:`${row.id}_${g.empresa.slice(0,10)}`,
         tipo:T.PROV_PROV, estado:E.AUTO, _origen:'auto',
-        odoo_desc:`Pago - ${g.empresa}`, odoo_cont:g.empresa,
+        odoo_desc:`${prefix} - ${g.empresa}`, odoo_cont:g.empresa,
         odoo_ref:`${g.empresa} ${g.referencia}`.trim(),
         odoo_imp:-g.monto, review_hint:'', notas:`Nomina ${nNum}`,
       });
@@ -1649,7 +1652,7 @@ function updateStats() {
 // ══════════════════════════════════════════════════════════════════════════════
 
 function exportCSV() {
-  const out=[];
+  const out=[], incomplete=[];
   for (const row of DATA) {
     if (row.estado===E.NETEADO) continue;
     if (row.tipo===T.PAC_CREDITO && !row._pac_split) {
@@ -1659,8 +1662,19 @@ function exportCSV() {
     const desc = document.getElementById(`e_desc_${row.id}`)?.textContent?.trim() ?? row.odoo_desc ?? '';
     const cont = document.getElementById(`e_cont_${row.id}`)?.textContent?.trim() ?? row.odoo_cont ?? '';
     const ref  = document.getElementById(`e_ref_${row.id}`)?.textContent?.trim()  ?? row.odoo_ref  ?? '';
-    if (!desc.trim()) continue;
+    if (!desc.trim()) {
+      incomplete.push(row);
+      continue;
+    }
     out.push({fecha:row.fecha,desc,cont,ref,imp:row.odoo_imp});
+  }
+  if (incomplete.length) {
+    toast(`⚠ Hay ${incomplete.length} fila${incomplete.length>1?'s':''} sin descripción — completá todas antes de exportar`, 4000);
+    // Scroll to first incomplete row and highlight it
+    const firstId = incomplete[0].id;
+    const firstEl = document.getElementById(`e_desc_${firstId}`);
+    if (firstEl) { firstEl.scrollIntoView({behavior:'smooth',block:'center'}); firstEl.focus(); }
+    return;
   }
   if (!out.length) { toast('Sin filas para exportar'); return; }
   const lines=['Fecha;Descripción;Contacto;Referencia;Importe;'];
